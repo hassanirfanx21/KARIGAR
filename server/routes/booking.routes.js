@@ -5,6 +5,7 @@
 const express = require('express');
 const router = express.Router();
 const { db } = require('../config/firebase');
+const { processDispute } = require('../agents/orchestrator');
 
 // Get booking detail by ID (includes agent_trace)
 router.get('/:id', async (req, res) => {
@@ -25,47 +26,46 @@ router.get('/:id', async (req, res) => {
   }
 });
 
-// Submit a dispute for a booking
+// Submit a dispute for a booking using the AI Dispute Agent
 router.post('/:id/dispute', async (req, res) => {
   try {
-    const { complaint, user_id } = req.body;
+    const { complaint, language, charged_amount } = req.body;
     const bookingId = req.params.id;
 
     if (!complaint) {
       return res.status(400).json({ error: 'Complaint text is required' });
     }
 
-    // Fetch the booking
+    // 1. Fetch the booking
     const bookingDoc = await db.collection('bookings').doc(bookingId).get();
     if (!bookingDoc.exists) {
       return res.status(404).json({ error: 'Booking not found', id: bookingId });
     }
-
     const booking = bookingDoc.data();
 
-    // Store dispute in Firestore
-    const disputeData = {
-      booking_id: bookingId,
-      user_id: user_id || booking.user_id || 'anonymous',
-      worker_id: booking.worker_id,
-      complaint,
-      status: 'pending_review',
-      created_at: new Date().toISOString(),
-    };
+    // 2. Fetch the worker's history
+    const workerDoc = await db.collection('workers').doc(booking.worker_id).get();
+    const worker_history = workerDoc.exists ? workerDoc.data() : {};
 
-    const disputeRef = await db.collection('disputes').add(disputeData);
+    // 3. Run the AI Dispute Agent via Orchestrator
+    const result = await processDispute({
+      complaint_text: complaint,
+      language: language || 'auto',
+      booking,
+      worker_history,
+      charged_amount
+    });
 
-    // Update booking status
+    // 4. Update the booking status in Firestore based on the agent's resolution
     await db.collection('bookings').doc(bookingId).update({
-      status: 'disputed',
-      dispute_id: disputeRef.id,
+      status: result.status === 'resolved' ? 'dispute_resolved' : 'dispute_escalated',
+      dispute_result: result,
     });
 
     res.json({
       success: true,
-      dispute_id: disputeRef.id,
-      status: 'pending_review',
-      message: 'Dispute submitted. Our team will review your complaint.',
+      message: 'Dispute processed by AI agent.',
+      result
     });
   } catch (err) {
     console.error('[Booking Dispute Error]', err.message);
