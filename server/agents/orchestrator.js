@@ -355,7 +355,7 @@ async function processBooking(input) {
     language: intent.language_detected === 'roman_urdu' ? 'roman_urdu' : 'english',
   };
 
-  const notifications = runNotificationAgent(notifInput);
+  const notifications = await runNotificationAgent(notifInput);
   trace.push(traceEntry('notification', { booking_id: booking.booking_id }, notifications));
 
   // ── Step 3: Follow-up Agent ───────────────────────────────────────────
@@ -528,71 +528,47 @@ async function orchestrate(message, language = 'auto', user_id = 'anonymous') {
     });
     addTrace('pricingAgent', { final_price: pricing.final_price }, tStart);
 
-    // 6. Booking Agent
-    tStart = Date.now();
-    const booking = await runBookingAgent({
-      user_id,
-      worker_id: topWorker.worker_id || topWorker.id,
-      service: { category: intent.service_category, display_name: intent.service_display },
-      slot: { date: intent.date, start: intent.time_slot?.start, end: intent.time_slot?.end },
-      location: intent.location,
-      pricing,
-      agent_trace: trace
-    });
-    addTrace('bookingAgent', { booking_id: booking.booking_id }, tStart);
-
-    // 7. Notification Agent
-    tStart = Date.now();
-    const notifInput = {
-      booking_id: booking.booking_id,
-      confirmation_code: booking.confirmation_code,
-      user_phone: 'N/A',
-      worker_phone: 'N/A',
-      worker_name: topWorker.name,
-      service_display: intent.service_display,
-      slot: { date: intent.date, start: intent.time_slot?.start, end: intent.time_slot?.end },
-      location: intent.location,
-      final_price: pricing.final_price,
-      language: intent.language_detected
-    };
-    const notifications = runNotificationAgent(notifInput);
-    addTrace('notificationAgent', { generated: notifications.notifications.length }, tStart);
-
-    // 8. Follow-up Agent
-    tStart = Date.now();
-    const followups = runFollowupAgent({
-      booking_id: booking.booking_id,
-      slot: { date: intent.date, start: intent.time_slot?.start, end: intent.time_slot?.end },
-      created_at: booking.created_at
-    });
-    addTrace('followupAgent', { generated: followups.followups.length }, tStart);
-
-    // 9. Master Reasoning via Gemini
-    let orchestrator_reasoning = '';
-    const summaryMsg = `We received request: "${message}". Intent extracted: ${intent.service_category} at ${intent.location?.label}. Found ${discovery.total_found} candidates. Selected ${topWorker.name} because they scored ${topWorker.total_score}. Price is ${pricing.final_price}. Booking ${booking.booking_id} created.`;
+    // 6. Master Reasoning via Gemini (Conversational Reply)
+    let reply = '';
+    const summaryMsg = `We received request: "${message}". Intent extracted: ${intent.service_category} at ${intent.location?.label}. Found ${discovery.total_found} candidates. Top candidate is ${topWorker.name} at ${pricing.final_price} PKR.`;
     
     try {
-      orchestrator_reasoning = await callGeminiText(
-        'You are the Master Orchestrator. Write a friendly 2-sentence summary of the decisions made in the language of the request.',
+      reply = await callGeminiText(
+        'You are KARIGAR Agent. Write a friendly 1-2 sentence response in Roman Urdu directly addressing the user, confirming you understood their request and found workers.',
         summaryMsg,
         { temperature: 0.3, maxTokens: 100 }
       );
     } catch (e) {
-      orchestrator_reasoning = `System fallback reasoning: Selected ${topWorker.name} for ${intent.service_category} at ${pricing.final_price} PKR based on highest ranking score (${topWorker.total_score}).`;
+      reply = `Mainey aapki request samajh li hai aur mujhe ${discovery.total_found} karigar mil gaye hain. Sab se behtar ${topWorker.name} hai.`;
     }
+
+    addTrace('geminiReply', { reply }, tStart);
 
     return {
       success: true,
-      booking_id: booking.booking_id,
-      confirmation_code: booking.confirmation_code,
-      worker: topWorker,
-      ranked: ranking.ranked,
-      pricing,
+      intent,
+      reply,
+      workers: [
+        {
+          ...topWorker,
+          pricing,
+        },
+        // We can add more workers from the ranked list here if needed, but the UI expects a workers array
+        ...ranking.ranked.slice(1, 3).map(w => ({
+          ...w,
+          pricing: runPricingAgent({
+            worker_base_price: w.base_price || w._raw_worker?.base_price || 1500,
+            distance_km: w.distance_km,
+            urgency: intent.urgency,
+            complexity: intent.complexity,
+            is_returning_user: false
+          })
+        }))
+      ],
+      total_candidates: discovery.total_found,
+      expanded_search: discovery.expanded || false,
       trace,
-      orchestrator_reasoning,
       total_duration_ms: Date.now() - startTime,
-      notifications: notifications.notifications,
-      followups: followups.followups
     };
 
   } catch (err) {

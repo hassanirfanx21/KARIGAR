@@ -32,6 +32,9 @@ app.use('/api/workers', workerRoutes);
 const bookingRoutes = require('./routes/booking.routes');
 app.use('/api/bookings', bookingRoutes);
 
+const authRoutes = require('./routes/auth.routes');
+app.use('/api/auth', authRoutes);
+
 // ─── Health Check ───────────────────────────────────────────────────────────
 app.get('/api/health', (req, res) => {
   res.json({

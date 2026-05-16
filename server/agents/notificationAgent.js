@@ -67,7 +67,7 @@ const TEMPLATES = {
  * @param {object} input
  * @returns {{ notifications: Array, agent: string, duration_ms: number }}
  */
-function runNotificationAgent(input) {
+async function runNotificationAgent(input) {
   const startTime = Date.now();
   const {
     booking_id,
@@ -101,9 +101,36 @@ function runNotificationAgent(input) {
   const userMsg = templateSet.user_confirm(templateData);
   const workerMsg = templateSet.worker_alert(templateData);
 
-  // ── Simulate sending (console log in dev) ─────────────────────────────
+  let userStatus = 'simulated';
+  let workerStatus = 'simulated';
+
+  // ── Actual sending via Fetch ─────────────────────────────
   console.log(`\n📱 [Notification] → User (${user_phone}):\n${userMsg}\n`);
   console.log(`📱 [Notification] → Worker (${worker_phone}):\n${workerMsg}\n`);
+
+  try {
+    // WhatsApp Cloud API
+    if (process.env.WHATSAPP_TOKEN && process.env.WHATSAPP_PHONE_ID && user_phone !== 'N/A') {
+      const res = await fetch(`https://graph.facebook.com/v17.0/${process.env.WHATSAPP_PHONE_ID}/messages`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${process.env.WHATSAPP_TOKEN}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          messaging_product: 'whatsapp',
+          to: user_phone,
+          type: 'text',
+          text: { body: userMsg }
+        })
+      });
+      if (res.ok) userStatus = 'sent';
+      console.log('[Notification] WhatsApp request completed');
+    }
+  } catch (err) {
+    console.error('[Notification] WhatsApp failed:', err.message);
+    userStatus = 'failed';
+  }
 
   const notifications = [
     {
@@ -112,7 +139,7 @@ function runNotificationAgent(input) {
       channel: 'whatsapp',
       message: userMsg,
       sent_at: new Date().toISOString(),
-      status: 'simulated',
+      status: userStatus,
     },
     {
       recipient: 'worker',
@@ -120,14 +147,14 @@ function runNotificationAgent(input) {
       channel: 'sms',
       message: workerMsg,
       sent_at: new Date().toISOString(),
-      status: 'simulated',
+      status: workerStatus, // SMS integration pending generic provider
     },
   ];
 
   return {
     notifications,
     agent: 'notification',
-    reasoning: `Sent ${notifications.length} notifications (simulated) — 1 to user via WhatsApp, 1 to worker via SMS.`,
+    reasoning: `Processed ${notifications.length} notifications — User status: ${userStatus}, Worker status: ${workerStatus}.`,
     duration_ms: Date.now() - startTime,
   };
 }

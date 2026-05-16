@@ -8,6 +8,8 @@ import { Bell, MapPin, Snowflake, PenTool, Zap, Brush, PaintBucket, Hammer, User
 import { useRouter } from 'expo-router';
 import { Colors, Shadows, Spacing, Radius } from '../../constants/theme';
 
+import * as Location from 'expo-location';
+
 const { width: W } = Dimensions.get('window');
 
 const SERVICES = [
@@ -30,11 +32,40 @@ export default function CustomerHomeScreen() {
   const router = useRouter();
   const [message, setMessage] = useState('');
   const [activeChip, setActiveChip] = useState(null);
+  const [isSending, setIsSending] = useState(false);
 
-  const handleSend = () => {
+  const handleSend = async () => {
     if (message.trim()) {
-      router.push({ pathname: '/(customer)/agent-working', params: { message: message.trim() } });
+      setIsSending(true);
+      console.log('[HOME][INFO] Requesting location permissions...');
+      let { status } = await Location.requestForegroundPermissionsAsync();
+      
+      let locationParams = null;
+      if (status === 'granted') {
+        console.log('[HOME][INFO] Fetching current position...');
+        try {
+          const loc = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
+          locationParams = {
+            lat: loc.coords.latitude,
+            lng: loc.coords.longitude
+          };
+          console.log(`[HOME][SUCCESS] Location fetched: ${locationParams.lat}, ${locationParams.lng}`);
+        } catch (err) {
+          console.warn('[HOME][WARN] Could not fetch location:', err);
+        }
+      } else {
+        console.log('[HOME][WARN] Location permission denied.');
+      }
+
+      router.push({ 
+        pathname: '/(customer)/agent-working', 
+        params: { 
+          message: message.trim(),
+          ...(locationParams ? { lat: locationParams.lat, lng: locationParams.lng } : {})
+        } 
+      });
       setMessage('');
+      setIsSending(false);
     }
   };
 

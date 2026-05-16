@@ -100,65 +100,7 @@ const URGENCY_KEYWORDS = {
 
 // ─── System Prompt for Gemini ───────────────────────────────────────────────
 
-const SYSTEM_PROMPT = `You are KARIGAR's Intent Parser — an AI that extracts structured service requests from multilingual user messages (English, Urdu, Roman Urdu, or mixed).
-
-Your job is ONLY to extract raw information. Do NOT compute dates, coordinates, or confidence scores.
-
-## Output Schema (respond with ONLY this JSON):
-{
-  "service_raw": "the service mentioned as-is, e.g. 'AC repair', 'plumber', 'bijli ka kaam'",
-  "service_category": "one of: hvac, plumbing, electrical, cleaning, carpentry, painting, tutoring — pick the CLOSEST match",
-  "service_display": "a clean display name in English, e.g. 'AC Technician', 'Plumber', 'Electrician'",
-  "location_raw": "the location/sector mentioned as-is, e.g. 'G-13', 'DHA', 'Bahria Town', or null if not mentioned",
-  "time_raw": "the time expression as-is, e.g. 'kal subah', 'aaj shaam', 'tomorrow morning', or null if not mentioned",
-  "urgency_raw": "urgent/normal/flexible based on tone and time words",
-  "complexity_raw": "basic/intermediate/complex based on the task described",
-  "budget_hint": "number if a budget is mentioned (e.g. '2000 ke andar' → 2000), or null",
-  "language_detected": "english / urdu / roman_urdu / mixed",
-  "additional_notes": "any extra details the user mentioned (e.g. 'split AC', '2 rooms', 'ground floor'), or null"
-}
-
-## Category Mapping Guide:
-- hvac → AC, cooling, heating, refrigerator, gas refilling, thanda
-- plumbing → pipes, leaks, taps, geyser, water tank, bathroom fitting, nalkay, flush
-- electrical → wiring, switches, generator, UPS, solar, fan, bijli
-- cleaning → house cleaning, deep clean, pest control, safai, fumigation
-- carpentry → furniture, cabinets, doors, wood work, wardrobe, lakri
-- painting → wall paint, texture, POP, interior/exterior, rang
-- tutoring → tuition, teacher, subjects, padhai
-
-## Few-Shot Examples:
-
-User: "Kal subah AC technician chahiye G-13 mein"
-Output: {"service_raw":"AC technician","service_category":"hvac","service_display":"AC Technician","location_raw":"G-13","time_raw":"kal subah","urgency_raw":"normal","complexity_raw":"basic","budget_hint":null,"language_detected":"roman_urdu","additional_notes":null}
-
-User: "I need a plumber urgently in F-8, there's a pipe burst"
-Output: {"service_raw":"plumber","service_category":"plumbing","service_display":"Plumber","location_raw":"F-8","time_raw":"urgently","urgency_raw":"urgent","complexity_raw":"intermediate","budget_hint":null,"language_detected":"english","additional_notes":"pipe burst"}
-
-User: "Bijli ka kaam hai I-10 mein, parson afternoon"
-Output: {"service_raw":"bijli ka kaam","service_category":"electrical","service_display":"Electrician","location_raw":"I-10","time_raw":"parson afternoon","urgency_raw":"normal","complexity_raw":"basic","budget_hint":null,"language_detected":"roman_urdu","additional_notes":null}
-
-User: "Ghar ki safai karwani hai DHA mein is hafte, budget 2000 ke andar"
-Output: {"service_raw":"ghar ki safai","service_category":"cleaning","service_display":"House Cleaning","location_raw":"DHA","time_raw":"is hafte","urgency_raw":"normal","complexity_raw":"basic","budget_hint":2000,"language_detected":"roman_urdu","additional_notes":null}
-
-User: "AC repair"
-Output: {"service_raw":"AC repair","service_category":"hvac","service_display":"AC Repair","location_raw":null,"time_raw":null,"urgency_raw":"normal","complexity_raw":"basic","budget_hint":null,"language_detected":"english","additional_notes":null}
-
-User: "Mujhe painter chahiye G-9, 2 rooms, kal shaam"
-Output: {"service_raw":"painter","service_category":"painting","service_display":"Painter","location_raw":"G-9","time_raw":"kal shaam","urgency_raw":"normal","complexity_raw":"intermediate","budget_hint":null,"language_detected":"roman_urdu","additional_notes":"2 rooms"}
-
-User: "hello"
-Output: {"service_raw":null,"service_category":null,"service_display":null,"location_raw":null,"time_raw":null,"urgency_raw":"normal","complexity_raw":"basic","budget_hint":null,"language_detected":"english","additional_notes":null}
-
-User: "Furniture theek karwana hai, kal dopahar, Bahria Town, budget 3000"
-Output: {"service_raw":"furniture theek karwana","service_category":"carpentry","service_display":"Furniture Repair","location_raw":"Bahria Town","time_raw":"kal dopahar","urgency_raw":"normal","complexity_raw":"basic","budget_hint":3000,"language_detected":"roman_urdu","additional_notes":null}
-
-## Rules:
-1. ALWAYS respond with valid JSON only — no markdown, no explanation.
-2. If a field is not mentioned, set it to null.
-3. For service_category, ALWAYS pick the closest of the 7 options. Never return anything else.
-4. For complexity: "basic" = routine job, "intermediate" = multi-step or specific, "complex" = major installation/renovation.
-5. Keep service_raw exactly as the user said it. Keep location_raw exactly as the user said it.`;
+const SYSTEM_PROMPT = `You are KARIGAR Agent for a Pakistani home services app. The user message is in Urdu or Roman Urdu. Extract the following and respond ONLY in valid JSON with no extra text: { intent: 'find_worker' | 'book' | 'query' | 'other', service_type: 'plumber' | 'electrician' | 'painter' | 'AC technician' | 'carpenter' | 'other' | null, location_mentioned: string or null, is_service_clear: true | false, is_location_clear: true | false, clarification_needed: string or null }`;
 
 // ─── Date/Time Resolver ─────────────────────────────────────────────────────
 
@@ -411,10 +353,9 @@ async function callGeminiWithRetry(prompt, message, options, retries = 2) {
 async function parseIntent(message, language = 'auto') {
   const startTime = Date.now();
 
-  // ── Step 1: Attempt extraction (with fallback for service_raw) ──
   console.log('[Intent Agent] Calling Gemini to extract intent...');
 
-  let extraction = { service_raw: message, location_raw: null };
+  let extraction = null;
   try {
     const { parsed } = await callGeminiWithRetry(SYSTEM_PROMPT, message, {
       temperature: 0.2,
@@ -429,66 +370,81 @@ async function parseIntent(message, language = 'auto') {
     console.warn('[Intent Agent] Gemini failed, continuing with keyword extraction:', err.message);
   }
 
-  // ── Step 2: Validate category (hybrid approach) ──
-  const serviceCategory = validateCategory(
-    extraction.service_category,
-    extraction.service_raw
-  );
-
-  // ── Step 3: Resolve location via geocoder ──
-  const location = extraction.location_raw
-    ? geocode(extraction.location_raw)
-    : null;
-
-  // ── Step 4: Resolve date/time ──
-  const dateTime = resolveDateTime(extraction.time_raw);
-
-  let urgency = dateTime?.urgency || 'normal';
-  if (extraction.urgency_raw === 'urgent' && urgency === 'normal') {
-    urgency = 'same_day';
-  } else if (extraction.urgency_raw === 'flexible') {
-    urgency = 'later';
+  // If extraction failed, fallback
+  if (!extraction) {
+    throw new Error('Gemini extraction failed to return valid JSON');
   }
 
-  // ── Step 5: Assemble the result ──
-  const detectedLanguage = extraction.language_detected || (language !== 'auto' ? language : 'english');
-
-  const result = {
-    service_category: serviceCategory,
-    service_display: extraction.service_display || null,
-    location_raw: extraction.location_raw || null,
-    location,
-    date: dateTime?.date || null,
-    time_slot: dateTime?.time_slot || null,
-    urgency,
-    complexity: extraction.complexity_raw || 'basic',
-    budget_hint: extraction.budget_hint || null,
-    language_detected: detectedLanguage,
-    additional_notes: extraction.additional_notes || null,
-    confidence: 0,
-  };
-
-  // ── Step 6: Compute confidence ──
-  result.confidence = computeConfidence(result);
-
-  // ── Step 7: Check if we need clarification ──
-  const needsClarification = !result.service_category || !result.location;
-
-  if (needsClarification) {
-    console.log('[Intent Agent] Missing required fields — requesting clarification');
+  // Handle Contingency Check (Priority 2 Step 3)
+  if (extraction.is_service_clear === false) {
     return {
-      ...buildClarification(
-        { ...result, location_raw: extraction.location_raw },
-        detectedLanguage
-      ),
+      status: 'needs_clarification',
+      message: extraction.clarification_needed || "Aap kaunsi service chahte hain? Jaise plumber, electrician, painter wagera.",
       agent: 'intent',
-      extraction_raw: extraction,
-      duration_ms: Date.now() - startTime,
+      duration_ms: Date.now() - startTime
     };
   }
 
-  // ── All good — return full structured intent ──
-  console.log(`[Intent Agent] ✅ Parsed successfully (confidence: ${result.confidence})`);
+  // For location, we'll check if it's missing entirely (we can check GPS later, but here we just flag it if no GPS was passed in)
+  if (extraction.is_location_clear === false) {
+    return {
+      status: 'needs_clarification',
+      message: extraction.clarification_needed || "Aap kahan hain? Apna area batayein jaise G-13 Islamabad, ya location share karein.",
+      agent: 'intent',
+      duration_ms: Date.now() - startTime
+    };
+  }
+
+  // Map service_type to our internal categories
+  let serviceCategory = null;
+  let serviceDisplay = null;
+  const serviceMap = {
+    'AC technician': { cat: 'hvac', display: 'AC Technician' },
+    'plumber': { cat: 'plumbing', display: 'Plumber' },
+    'electrician': { cat: 'electrical', display: 'Electrician' },
+    'painter': { cat: 'painting', display: 'Painter' },
+    'carpenter': { cat: 'carpentry', display: 'Carpenter' },
+    'cleaning': { cat: 'cleaning', display: 'Cleaning Service' },
+  };
+
+  if (extraction.service_type && serviceMap[extraction.service_type]) {
+    serviceCategory = serviceMap[extraction.service_type].cat;
+    serviceDisplay = serviceMap[extraction.service_type].display;
+  } else if (extraction.service_type) {
+    serviceCategory = validateCategory(extraction.service_type, extraction.service_type);
+    serviceDisplay = extraction.service_type;
+  }
+
+  // Resolve location via geocoder
+  const location = extraction.location_mentioned
+    ? geocode(extraction.location_mentioned)
+    : null;
+
+  const result = {
+    service_category: serviceCategory,
+    service_display: serviceDisplay || extraction.service_type,
+    location_raw: extraction.location_mentioned,
+    location,
+    date: new Date().toISOString().split('T')[0], // Defaulting to today for now as it's not in the new prompt
+    time_slot: { start: '09:00', end: '18:00', label: 'Flexible' },
+    urgency: 'normal',
+    complexity: 'basic',
+    budget_hint: null,
+    language_detected: language !== 'auto' ? language : 'roman_urdu',
+    confidence: 1, // Gemini handled confidence via is_clear flags
+  };
+
+  const needsClarification = !result.service_category || !result.location;
+  if (needsClarification) {
+    return {
+      status: 'needs_clarification',
+      message: "Thori aur details chahiye. Aapko kya service chahiye aur kahan?",
+      agent: 'intent',
+      duration_ms: Date.now() - startTime
+    };
+  }
+
+  console.log(`[Intent Agent] ✅ Parsed successfully`);
 
   return {
     status: 'parsed',

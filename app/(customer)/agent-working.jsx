@@ -27,37 +27,72 @@ export default function AgentWorkingScreen() {
   const router = useRouter();
   const params = useLocalSearchParams();
   const userMessage = params.message || 'AC Technician chahiye kal subah G-13 mein';
+  const lat = params.lat;
+  const lng = params.lng;
   
-  const [statuses, setStatuses] = useState(STEPS.map(() => 'idle'));
-  const [allDone, setAllDone] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(true);
   const [agentResult, setAgentResult] = useState(null);
   const [error, setError] = useState(null);
+  const [bookingWorkerId, setBookingWorkerId] = useState(null);
 
   useEffect(() => {
-    // 1. Trigger actual backend call
+    // Trigger actual backend call
     fetch(`${API_URL}/api/agent/request`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ message: userMessage, language: 'roman_urdu' })
+      body: JSON.stringify({ message: userMessage, language: 'roman_urdu', lat, lng })
     })
       .then(res => res.json())
       .then(data => {
-        if (data.success) setAgentResult(data);
-        else setError(true);
+        setIsProcessing(false);
+        if (data.success) {
+          setAgentResult(data);
+        } else {
+          setError(data.message || 'Error parsing intent');
+        }
       })
-      .catch(() => setError(true));
-
-    // 2. Handle UI animations sequentially
-    const timers = [];
-    STEPS.forEach((step, i) => {
-      timers.push(setTimeout(() => setStatuses(p => { const n=[...p]; n[i]='active'; return n; }), step.delay));
-      timers.push(setTimeout(() => {
-        setStatuses(p => { const n=[...p]; n[i]='done'; return n; });
-        if (i === STEPS.length - 1) setAllDone(true);
-      }, step.delay + step.duration));
-    });
-    return () => timers.forEach(clearTimeout);
+      .catch((err) => {
+        setIsProcessing(false);
+        setError('Network error: ' + err.message);
+      });
   }, []);
+
+  const handleBookWorker = async (worker) => {
+    setBookingWorkerId(worker.worker_id || worker.id);
+    try {
+      const res = await fetch(`${API_URL}/api/agent/book`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          user_id: 'anonymous',
+          worker_id: worker.worker_id || worker.id,
+          intent: agentResult.intent,
+          pricing: worker.pricing,
+          worker_name: worker.name
+        })
+      });
+      const data = await res.json();
+      if (data.success) {
+        router.replace({ 
+          pathname: '/(customer)/booking-detail', 
+          params: { 
+            bookingId: data.booking?.booking_id, 
+            workerName: worker.name,
+            slot: agentResult?.intent?.date || 'Kal',
+            location: agentResult?.intent?.location?.label || 'Islamabad',
+            confirmCode: data.booking?.confirmation_code,
+            pricing: JSON.stringify(worker.pricing || {})
+          } 
+        });
+      } else {
+        alert('Booking failed');
+        setBookingWorkerId(null);
+      }
+    } catch(err) {
+      alert('Booking request failed');
+      setBookingWorkerId(null);
+    }
+  };
 
   return (
     <SafeAreaView style={styles.safe} edges={['top', 'left', 'right']}>
@@ -70,96 +105,84 @@ export default function AgentWorkingScreen() {
           </View>
         </View>
 
-        {/* Trace block */}
-        <View style={styles.traceBlock}>
-          <View style={styles.traceHeader}>
-            <View style={styles.kMark}><Text style={{ color: Colors.blackDeep, fontWeight: '900', fontSize: 16 }}>K</Text></View>
-            <Text style={styles.traceTitle}>KARIGAR Agent</Text>
-            {statuses.some(s => s === 'active') && <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}><SpinnerRing size={14} /><Text style={{ color: Colors.greenPrimary, fontSize: 11, fontWeight: '600' }}>Processing...</Text></View>}
-            {allDone && <Text style={{ color: Colors.successGreen, fontSize: 11, fontWeight: '700' }}>Mukammal ✓</Text>}
-          </View>
-          {STEPS.map((step, i) => {
-            if (statuses[i] === 'idle') return null;
-            const isDone = statuses[i] === 'done';
-            return (
-              <View key={step.id} style={styles.stepRow}>
-                <View style={styles.stepLeft}>
-                  {statuses[i] === 'active' ? <SpinnerRing /> : (
-                    <View style={styles.doneCircle}><Text style={{ color: '#fff', fontSize: 10, fontWeight: '800' }}>✓</Text></View>
-                  )}
-                  <View style={styles.connector} />
-                </View>
-                <View style={{ flex: 1, paddingLeft: 10, paddingBottom: 12 }}>
-                  <Text style={[styles.stepLabel, isDone && styles.stepLabelDone]}>{isDone ? step.labelDone : step.labelActive}</Text>
-                </View>
+        {/* Trace block (Processing) */}
+        {isProcessing && (
+          <View style={styles.traceBlock}>
+            <View style={styles.traceHeader}>
+              <View style={styles.kMark}><Text style={{ color: Colors.blackDeep, fontWeight: '900', fontSize: 16 }}>K</Text></View>
+              <Text style={styles.traceTitle}>KARIGAR Agent</Text>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}><SpinnerRing size={14} /><Text style={{ color: Colors.greenPrimary, fontSize: 11, fontWeight: '600' }}>Processing...</Text></View>
+            </View>
+            <View style={styles.stepRow}>
+              <View style={styles.stepLeft}>
+                <SpinnerRing />
               </View>
-            );
-          })}
-        </View>
+              <View style={{ flex: 1, paddingLeft: 10, paddingBottom: 12 }}>
+                <Text style={styles.stepLabel}>Aapki request samajh raha hoon...</Text>
+              </View>
+            </View>
+          </View>
+        )}
 
         {/* Error State */}
-        {allDone && error && (
+        {!isProcessing && error && (
           <View style={styles.confirmCard}>
             <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 10, gap: 8 }}>
               <AlertCircle size={22} color={Colors.errorRed} />
               <Text style={[styles.confirmTitle, { color: Colors.errorRed, marginBottom: 0 }]}>Kuch Masla Hua</Text>
             </View>
-            <Text style={{ color: Colors.textOnDark, marginBottom: 15 }}>Hum aapka request process nahi kar sake. Dobara koshish karein.</Text>
+            <Text style={{ color: Colors.textOnDark, marginBottom: 15 }}>{error}</Text>
             <TouchableOpacity style={styles.ctaGhost} onPress={() => router.back()} activeOpacity={0.7}>
               <Text style={styles.ctaGhostText}>Peechay Jayein</Text>
             </TouchableOpacity>
           </View>
         )}
 
-        {/* Confirm card */}
-        {allDone && agentResult && !error && (
-          <View style={styles.confirmCard}>
-            <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 10, gap: 8 }}>
-              <CheckCircle2 size={22} color={Colors.successGreen} />
-              <Text style={[styles.confirmTitle, { marginBottom: 0 }]}>Booking Confirm Ho Gayi!</Text>
+        {/* Success State - Display AI Reply & Candidates */}
+        {!isProcessing && agentResult && !error && (
+          <View style={{ gap: 16 }}>
+            {/* AI Reply Bubble */}
+            <View style={{ alignSelf: 'flex-start', maxWidth: '85%', backgroundColor: Colors.whiteSoft, borderRadius: 18, borderBottomLeftRadius: 4, padding: 14, borderWidth: 1, borderColor: Colors.border, ...Shadows.card }}>
+               <Text style={{ color: Colors.blackDeep, fontSize: 15, lineHeight: 22 }}>
+                 {agentResult.reply}
+               </Text>
             </View>
-            <View style={styles.confirmDivider} />
-            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-              <View style={styles.workerAvatar}>
-                <User size={26} color={Colors.greenPrimary} />
-              </View>
-              <View style={{ flex: 1, marginLeft: 12 }}>
-                <Text style={styles.workerName}>{agentResult.worker?.name || 'Karigar'}</Text>
-                <Text style={styles.workerRating}>{agentResult.worker?.rating || 'New'} ★ Excellent</Text>
-              </View>
-            </View>
-            <View style={styles.confirmDivider} />
-            {[
-              { icon: <Tag size={16} color={Colors.textMuted} />, text: `Booking ID: ${agentResult.booking_id}` },
-              { icon: <Key size={16} color={Colors.textMuted} />, text: `Code: ${agentResult.confirmation_code}` },
-              { icon: <MapPin size={16} color={Colors.textMuted} />, text: agentResult?.worker?._raw_worker?.sector || 'Islamabad' },
-              { icon: <Tag size={16} color={Colors.textMuted} />, text: `PKR ${agentResult.pricing?.final_price || 0}` },
-            ].map(r => (
-              <View key={r.text} style={styles.confirmRow}>
-                <View style={{ width: 26, alignItems: 'center' }}>{r.icon}</View>
-                <Text style={styles.confirmRowText}>{r.text}</Text>
+
+            <Text style={{ color: Colors.blackDeep, fontSize: 16, fontWeight: '800', marginTop: 10 }}>Available Karigars</Text>
+            
+            {agentResult.workers?.map((worker, idx) => (
+              <View key={idx} style={styles.confirmCard}>
+                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                  <View style={styles.workerAvatar}>
+                    <User size={26} color={Colors.greenPrimary} />
+                  </View>
+                  <View style={{ flex: 1, marginLeft: 12 }}>
+                    <Text style={styles.workerName}>{worker.name}</Text>
+                    <Text style={styles.workerRating}>{worker.rating || 'New'} ★ | {worker.distance_km?.toFixed(1) || '?'} km away</Text>
+                  </View>
+                  <View style={{ alignItems: 'flex-end' }}>
+                    <Text style={{ color: Colors.greenPrimary, fontWeight: 'bold', fontSize: 16 }}>PKR {worker.pricing?.final_price}</Text>
+                  </View>
+                </View>
+                
+                {worker.reasoning && (
+                  <View style={{ marginTop: 12, padding: 10, backgroundColor: 'rgba(255,255,255,0.05)', borderRadius: 8 }}>
+                    <Text style={{ color: Colors.textMuted, fontSize: 12 }}>{worker.reasoning}</Text>
+                  </View>
+                )}
+
+                <TouchableOpacity 
+                  style={[styles.ctaPrimary, bookingWorkerId === (worker.worker_id || worker.id) && { opacity: 0.7 }]} 
+                  onPress={() => handleBookWorker(worker)} 
+                  activeOpacity={0.85}
+                  disabled={bookingWorkerId !== null}
+                >
+                  <Text style={styles.ctaPrimaryText}>
+                    {bookingWorkerId === (worker.worker_id || worker.id) ? 'Booking...' : 'Book This Worker'}
+                  </Text>
+                </TouchableOpacity>
               </View>
             ))}
-            <TouchableOpacity 
-              style={styles.ctaPrimary} 
-              onPress={() => router.replace({ 
-                pathname: '/(customer)/booking-detail', 
-                params: { 
-                  bookingId: agentResult?.booking_id, 
-                  workerName: agentResult?.worker?.name,
-                  slot: agentResult?.booking?.slot_date || 'Kal 10:00 AM',
-                  location: agentResult?.worker?._raw_worker?.sector || 'G-13, Islamabad',
-                  confirmCode: agentResult?.confirmation_code,
-                  pricing: JSON.stringify(agentResult?.pricing || {})
-                } 
-              })} 
-              activeOpacity={0.85}
-            >
-              <Text style={styles.ctaPrimaryText}>Booking Detail Dekhein →</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.ctaGhost} onPress={() => router.back()} activeOpacity={0.7}>
-              <Text style={styles.ctaGhostText}>Naya Request Karein</Text>
-            </TouchableOpacity>
           </View>
         )}
       </ScrollView>
