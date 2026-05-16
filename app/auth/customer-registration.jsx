@@ -128,35 +128,35 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.whitePure, borderBottomWidth: 1, borderBottomColor: Colors.border,
   },
   backText: { color: Colors.textMuted, fontSize: 13, fontWeight: '600' },
-  headerTitle: { color: Colors.charcoalDeep, fontSize: 16, fontWeight: '700' },
-  stepLabel: { color: Colors.goldPrimary, fontSize: 12, fontWeight: '700' },
+  headerTitle: { color: Colors.blackDeep, fontSize: 16, fontWeight: '700' },
+  stepLabel: { color: Colors.greenPrimary, fontSize: 12, fontWeight: '700' },
 
   progressBar: {
     height: 3, backgroundColor: Colors.border, marginHorizontal: Spacing.xl, marginTop: 12,
     borderRadius: 2, overflow: 'hidden',
   },
-  progressFill: { height: 3, backgroundColor: Colors.goldPrimary, borderRadius: 2 },
+  progressFill: { height: 3, backgroundColor: Colors.greenPrimary, borderRadius: 2 },
 
   content: { paddingHorizontal: Spacing.xl, paddingTop: 28, paddingBottom: 40 },
-  stepTitle: { color: Colors.charcoalDeep, fontSize: 22, fontWeight: '800', marginBottom: 6 },
+  stepTitle: { color: Colors.blackDeep, fontSize: 22, fontWeight: '800', marginBottom: 6 },
   stepSubtitle: { color: Colors.textMuted, fontSize: 14, marginBottom: 28 },
 
   inputLabel: {
-    color: Colors.charcoalLight, fontSize: 12, fontWeight: '700',
+    color: Colors.blackLight, fontSize: 12, fontWeight: '700',
     letterSpacing: 0.5, marginBottom: 6, marginTop: 14,
   },
   input: {
     backgroundColor: Colors.whitePure, borderRadius: Radius.md,
     paddingHorizontal: 16, paddingVertical: 14,
     borderWidth: 1, borderColor: Colors.border,
-    fontSize: 15, color: Colors.charcoalDeep,
+    fontSize: 15, color: Colors.blackDeep,
   },
 
   nextBtn: {
-    backgroundColor: Colors.goldPrimary, borderRadius: Radius.md,
+    backgroundColor: Colors.greenPrimary, borderRadius: Radius.md,
     paddingVertical: 16, alignItems: 'center', marginTop: 32,
-    ...Shadows.goldFloat,
+    ...Shadows.greenFloat,
   },
   btnDisabled: { opacity: 0.3, shadowOpacity: 0 },
-  nextBtnText: { color: Colors.charcoalDeep, fontSize: 16, fontWeight: '800' },
+  nextBtnText: { color: Colors.blackDeep, fontSize: 16, fontWeight: '800' },
 });

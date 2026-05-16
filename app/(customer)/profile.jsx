@@ -17,8 +17,8 @@ function ListRow({ icon, label, value, onPress, danger, toggle, toggleValue, onT
         {value && <Text style={styles.listValue}>{value}</Text>}
         {toggle && (
           <Switch value={toggleValue} onValueChange={onToggle}
-            trackColor={{ false: Colors.darkBorder, true: Colors.goldPrimary }}
-            thumbColor={toggleValue ? Colors.charcoalDeep : Colors.textMuted} />
+            trackColor={{ false: Colors.darkBorder, true: Colors.greenPrimary }}
+            thumbColor={toggleValue ? Colors.blackDeep : Colors.textMuted} />
         )}
         {!toggle && <Text style={[styles.chevron, danger && { color: Colors.errorRed }]}>›</Text>}
       </View>
@@ -126,32 +126,32 @@ const styles = StyleSheet.create({
   settingsBtn: { width: 38, height: 38, borderRadius: 19, backgroundColor: Colors.darkCard, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: Colors.darkBorder },
   scrollContent: { paddingBottom: 40 },
   profileHero: { backgroundColor: Colors.darkCard, marginHorizontal: 16, borderRadius: 24, padding: 24, alignItems: 'center', marginBottom: 20, borderWidth: 1, borderColor: Colors.darkBorder, ...Shadows.cardHeavy },
-  avatarRing: { width: 96, height: 96, borderRadius: 48, borderWidth: 2.5, borderColor: Colors.goldPrimary, alignItems: 'center', justifyContent: 'center', marginBottom: 14 },
-  heroAvatar: { width: 84, height: 84, borderRadius: 42, backgroundColor: Colors.brownMatte, alignItems: 'center', justifyContent: 'center' },
+  avatarRing: { width: 96, height: 96, borderRadius: 48, borderWidth: 2.5, borderColor: Colors.greenPrimary, alignItems: 'center', justifyContent: 'center', marginBottom: 14 },
+  heroAvatar: { width: 84, height: 84, borderRadius: 42, backgroundColor: Colors.grayMatte, alignItems: 'center', justifyContent: 'center' },
   heroAvatarText: { color: Colors.textOnDark, fontSize: 28, fontWeight: '700' },
   heroName: { color: Colors.textOnDark, fontSize: 20, fontWeight: '800', marginBottom: 4 },
   heroPhone: { color: Colors.textMuted, fontSize: 13, marginBottom: 20 },
   statsRow: { flexDirection: 'row', width: '100%', marginBottom: 20 },
   statItem: { flex: 1, alignItems: 'center' },
-  statValue: { color: Colors.goldPrimary, fontSize: 22, fontWeight: '800' },
+  statValue: { color: Colors.greenPrimary, fontSize: 22, fontWeight: '800' },
   statLabel: { color: Colors.textMuted, fontSize: 11, marginTop: 2 },
   statDivider: { width: 1, backgroundColor: Colors.darkBorder },
-  editBtn: { backgroundColor: Colors.goldPrimary, paddingHorizontal: 28, paddingVertical: 12, borderRadius: 14, ...Shadows.goldFloat },
-  editBtnText: { color: Colors.charcoalDeep, fontSize: 14, fontWeight: '800' },
+  editBtn: { backgroundColor: Colors.greenPrimary, paddingHorizontal: 28, paddingVertical: 12, borderRadius: 14, ...Shadows.greenFloat },
+  editBtnText: { color: Colors.blackDeep, fontSize: 14, fontWeight: '800' },
   sectionWrap: { paddingHorizontal: 16, marginBottom: 14 },
-  sectionLabel: { color: Colors.goldPrimary, fontSize: 10, fontWeight: '800', letterSpacing: 1.5, marginBottom: 8 },
+  sectionLabel: { color: Colors.greenPrimary, fontSize: 10, fontWeight: '800', letterSpacing: 1.5, marginBottom: 8 },
   sectionCard: { backgroundColor: Colors.darkCard, borderRadius: 18, borderWidth: 1, borderColor: Colors.darkBorder, overflow: 'hidden' },
   listRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingVertical: 15 },
   listRowLeft: { flexDirection: 'row', alignItems: 'center', gap: 12, flex: 1 },
-  listIconWrap: { width: 36, height: 36, borderRadius: 10, backgroundColor: `${Colors.goldPrimary}15`, alignItems: 'center', justifyContent: 'center' },
+  listIconWrap: { width: 36, height: 36, borderRadius: 10, backgroundColor: `${Colors.greenPrimary}15`, alignItems: 'center', justifyContent: 'center' },
   listLabel: { color: Colors.textOnDark, fontSize: 14, fontWeight: '600' },
   listLabelDanger: { color: Colors.errorRed, fontWeight: '600', fontSize: 14 },
   listRowRight: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   listValue: { color: Colors.textMuted, fontSize: 12 },
-  chevron: { color: Colors.charcoalLight, fontSize: 20, fontWeight: '300' },
+  chevron: { color: Colors.blackLight, fontSize: 20, fontWeight: '300' },
   rowDivider: { height: 1, backgroundColor: Colors.darkBorder, marginHorizontal: 16 },
-  defaultBadge: { backgroundColor: `${Colors.goldPrimary}20`, paddingHorizontal: 7, paddingVertical: 2, borderRadius: 6 },
-  defaultBadgeText: { color: Colors.goldPrimary, fontSize: 9, fontWeight: '800', letterSpacing: 0.5 },
+  defaultBadge: { backgroundColor: `${Colors.greenPrimary}20`, paddingHorizontal: 7, paddingVertical: 2, borderRadius: 6 },
+  defaultBadgeText: { color: Colors.greenPrimary, fontSize: 9, fontWeight: '800', letterSpacing: 0.5 },
   addressSub: { color: Colors.textMuted, fontSize: 11, marginTop: 2, maxWidth: 200 },
   versionText: { color: Colors.textMuted, fontSize: 11, textAlign: 'center', marginTop: 8 },
 });

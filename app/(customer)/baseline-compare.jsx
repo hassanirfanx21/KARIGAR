@@ -3,6 +3,7 @@ import { View, Text, ScrollView, ActivityIndicator, StyleSheet } from 'react-nat
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams } from 'expo-router';
 import { Colors, Shadows, Radius } from '../../constants/theme';
+import { API_URL } from '../../constants/config';
 
 export default function BaselineCompareScreen() {
   const params = useLocalSearchParams();
@@ -17,7 +18,7 @@ export default function BaselineCompareScreen() {
     async function fetchData() {
       try {
         setLoading(true);
-        const serverIp = 'http://YOUR_SERVER_IP:3000'; // Or use your actual local dev IP
+        const serverIp = API_URL;
         
         // Parallel fetching
         const [baseRes, agentRes] = await Promise.all([
@@ -49,7 +50,7 @@ export default function BaselineCompareScreen() {
   if (loading) {
     return (
       <SafeAreaView style={styles.centerContainer} edges={['top', 'left', 'right']}>
-        <ActivityIndicator size="large" color={Colors.goldPrimary} />
+        <ActivityIndicator size="large" color={Colors.greenPrimary} />
         <Text style={styles.loadingText}>Comparing Simple Search vs KARIGAR AI...</Text>
       </SafeAreaView>
     );
@@ -101,7 +102,7 @@ export default function BaselineCompareScreen() {
 
           {/* RIGHT COLUMN: KARIGAR AI */}
           <View style={styles.column}>
-            <Text style={[styles.columnHeader, { color: Colors.goldPrimary }]}>KARIGAR AI</Text>
+            <Text style={[styles.columnHeader, { color: Colors.greenPrimary }]}>KARIGAR AI</Text>
             {agenticData.length === 0 && (
               <Text style={styles.emptyText}>No matches met the strict criteria</Text>
             )}
@@ -136,17 +137,17 @@ const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: Colors.whitePure },
   scroll: { padding: 20, paddingBottom: 60 },
   centerContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: Colors.whitePure, padding: 20 },
-  loadingText: { marginTop: 12, fontSize: 15, color: Colors.charcoalLight, fontWeight: '600' },
+  loadingText: { marginTop: 12, fontSize: 15, color: Colors.blackLight, fontWeight: '600' },
   errorText: { color: Colors.errorRed, fontSize: 14, textAlign: 'center', lineHeight: 20 },
   
   headerBlock: { alignItems: 'center', marginBottom: 24, marginTop: 10 },
-  headerTitle: { fontSize: 26, fontWeight: '900', color: Colors.charcoalDeep, textAlign: 'center', marginBottom: 12 },
-  statPill: { backgroundColor: `${Colors.goldPrimary}20`, paddingHorizontal: 16, paddingVertical: 8, borderRadius: 20, borderWidth: 1, borderColor: `${Colors.goldPrimary}50` },
-  statText: { fontSize: 13, fontWeight: '700', color: Colors.charcoalDeep },
+  headerTitle: { fontSize: 26, fontWeight: '900', color: Colors.blackDeep, textAlign: 'center', marginBottom: 12 },
+  statPill: { backgroundColor: `${Colors.greenPrimary}20`, paddingHorizontal: 16, paddingVertical: 8, borderRadius: 20, borderWidth: 1, borderColor: `${Colors.greenPrimary}50` },
+  statText: { fontSize: 13, fontWeight: '700', color: Colors.blackDeep },
   
   columnsContainer: { flexDirection: 'row', gap: 12 },
   column: { flex: 1 },
-  columnHeader: { fontSize: 15, fontWeight: '800', color: Colors.charcoalLight, marginBottom: 16, textAlign: 'center', letterSpacing: 0.5 },
+  columnHeader: { fontSize: 15, fontWeight: '800', color: Colors.blackLight, marginBottom: 16, textAlign: 'center', letterSpacing: 0.5 },
   emptyText: { fontSize: 12, color: Colors.textMuted, textAlign: 'center', fontStyle: 'italic', marginTop: 20 },
   
   card: {
@@ -159,13 +160,13 @@ const styles = StyleSheet.create({
     ...Shadows.card
   },
   agenticCard: {
-    borderColor: Colors.goldPrimary,
+    borderColor: Colors.greenPrimary,
     backgroundColor: '#FAFAF5',
-    ...Shadows.goldFloat
+    ...Shadows.greenFloat
   },
   
-  workerName: { fontSize: 15, fontWeight: '800', color: Colors.charcoalDeep, marginBottom: 6 },
-  workerDetail: { fontSize: 12, color: Colors.charcoalLight, marginBottom: 4, fontWeight: '500' },
+  workerName: { fontSize: 15, fontWeight: '800', color: Colors.blackDeep, marginBottom: 6 },
+  workerDetail: { fontSize: 12, color: Colors.blackLight, marginBottom: 4, fontWeight: '500' },
   
   warningTag: { backgroundColor: `${Colors.errorRed}15`, alignSelf: 'flex-start', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4, marginTop: 6 },
   warningText: { fontSize: 10, color: Colors.errorRed, fontWeight: '600' },
@@ -179,9 +180,9 @@ const styles = StyleSheet.create({
   },
   scoreBarFill: {
     height: '100%',
-    backgroundColor: Colors.goldPrimary,
+    backgroundColor: Colors.greenPrimary,
     borderRadius: 4,
   },
-  scoreText: { fontSize: 11, fontWeight: '700', color: Colors.charcoalDeep, marginBottom: 8 },
+  scoreText: { fontSize: 11, fontWeight: '700', color: Colors.blackDeep, marginBottom: 8 },
   featureText: { fontSize: 10, color: Colors.successGreen, fontWeight: '600', marginTop: 2 },
 });

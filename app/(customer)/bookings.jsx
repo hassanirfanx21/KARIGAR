@@ -15,7 +15,7 @@ const STATUS_CFG = {
   confirmed: { label: 'Confirmed', color: Colors.successGreen, bg: Colors.confirmedBg, dot: '●' },
   pending: { label: 'Pending', color: Colors.pendingOrange, bg: Colors.pendingBg, dot: '●' },
   cancelled: { label: 'Cancelled', color: Colors.errorRed, bg: Colors.cancelledBg, dot: '●' },
-  completed: { label: 'Mukammal', color: Colors.goldPrimary, bg: Colors.goldMuted, dot: '✓' },
+  completed: { label: 'Mukammal', color: Colors.greenPrimary, bg: Colors.greenMuted, dot: '✓' },
 };
 
 function BookingCard({ booking, onView }) {
@@ -76,7 +76,7 @@ export default function BookingsScreen() {
         {[
           { label: 'Active', count: BOOKINGS.filter(b => ['confirmed', 'pending'].includes(b.status)).length, color: Colors.successGreen },
           { label: 'Pending', count: BOOKINGS.filter(b => b.status === 'pending').length, color: Colors.pendingOrange },
-          { label: 'Total', count: BOOKINGS.length, color: Colors.goldPrimary },
+          { label: 'Total', count: BOOKINGS.length, color: Colors.greenPrimary },
         ].map(p => (
           <View key={p.label} style={styles.summaryPill}>
             <Text style={[styles.summaryCount, { color: p.color }]}>{p.count}</Text>
@@ -109,7 +109,7 @@ export default function BookingsScreen() {
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: Colors.whiteSoft },
   header: { paddingHorizontal: 20, paddingTop: 18, paddingBottom: 14, backgroundColor: Colors.whitePure, borderBottomWidth: 1, borderBottomColor: Colors.border },
-  headerTitle: { color: Colors.charcoalDeep, fontSize: 22, fontWeight: '800' },
+  headerTitle: { color: Colors.blackDeep, fontSize: 22, fontWeight: '800' },
   headerSub: { color: Colors.textMuted, fontSize: 12, marginTop: 2 },
   summaryRow: { flexDirection: 'row', backgroundColor: Colors.whitePure, paddingHorizontal: 20, paddingBottom: 14, borderBottomWidth: 1, borderBottomColor: Colors.border },
   summaryPill: { flex: 1, alignItems: 'center', paddingVertical: 8, borderRightWidth: 1, borderRightColor: Colors.border },
@@ -117,30 +117,30 @@ const styles = StyleSheet.create({
   summaryLabel: { color: Colors.textMuted, fontSize: 11, fontWeight: '600', marginTop: 2 },
   filterRow: { paddingHorizontal: 16, paddingVertical: 12, gap: 8, backgroundColor: Colors.whitePure },
   filterChip: { paddingHorizontal: 18, paddingVertical: 8, borderRadius: Radius.full, backgroundColor: Colors.whiteSoft, borderWidth: 1, borderColor: Colors.border },
-  filterChipActive: { backgroundColor: Colors.goldPrimary, borderColor: Colors.goldPrimary },
-  filterChipText: { color: Colors.charcoalLight, fontSize: 13, fontWeight: '600' },
+  filterChipActive: { backgroundColor: Colors.greenPrimary, borderColor: Colors.greenPrimary },
+  filterChipText: { color: Colors.blackLight, fontSize: 13, fontWeight: '600' },
   filterChipTextActive: { color: Colors.whitePure },
   listContent: { padding: 16, gap: 14 },
   card: { backgroundColor: Colors.whitePure, borderRadius: 20, borderWidth: 1, borderColor: Colors.border, overflow: 'hidden', ...Shadows.card },
   cardAccent: { height: 3, width: '100%' },
   cardTopRow: { flexDirection: 'row', alignItems: 'center', padding: 16, gap: 12 },
-  workerAvatar: { width: 52, height: 52, borderRadius: 26, backgroundColor: Colors.brownMatte, alignItems: 'center', justifyContent: 'center' },
+  workerAvatar: { width: 52, height: 52, borderRadius: 26, backgroundColor: Colors.grayMatte, alignItems: 'center', justifyContent: 'center' },
   cardTitleRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 8, marginBottom: 4 },
-  workerName: { color: Colors.charcoalDeep, fontSize: 15, fontWeight: '700', flex: 1 },
+  workerName: { color: Colors.blackDeep, fontSize: 15, fontWeight: '700', flex: 1 },
   statusBadge: { paddingHorizontal: 9, paddingVertical: 3, borderRadius: Radius.full },
   statusText: { fontSize: 10, fontWeight: '800' },
-  serviceLabel: { color: Colors.charcoalLight, fontSize: 13 },
+  serviceLabel: { color: Colors.blackLight, fontSize: 13 },
   cardDivider: { height: 1, backgroundColor: Colors.border, marginHorizontal: 16 },
   metaRow: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 16, paddingVertical: 12 },
-  metaText: { color: Colors.charcoalLight, fontSize: 12, fontWeight: '500' },
+  metaText: { color: Colors.blackLight, fontSize: 12, fontWeight: '500' },
   metaDot: { width: 4, height: 4, borderRadius: 2, backgroundColor: Colors.border },
   cardFooter: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingBottom: 14, paddingTop: 4 },
   amountLabel: { color: Colors.textMuted, fontSize: 10, fontWeight: '600' },
-  amountValue: { color: Colors.goldPrimary, fontSize: 16, fontWeight: '800' },
-  btnView: { paddingHorizontal: 16, paddingVertical: 8, borderRadius: 10, backgroundColor: Colors.goldPrimary, ...Shadows.goldFloat },
-  btnViewText: { color: Colors.charcoalDeep, fontSize: 12, fontWeight: '800' },
+  amountValue: { color: Colors.greenPrimary, fontSize: 16, fontWeight: '800' },
+  btnView: { paddingHorizontal: 16, paddingVertical: 8, borderRadius: 10, backgroundColor: Colors.greenPrimary, ...Shadows.greenFloat },
+  btnViewText: { color: Colors.blackDeep, fontSize: 12, fontWeight: '800' },
   cancelNote: { color: Colors.textMuted, fontSize: 12, fontStyle: 'italic' },
   bookingId: { color: Colors.textMuted, fontSize: 10, fontFamily: 'monospace', paddingHorizontal: 16, paddingBottom: 10 },
   emptyWrap: { alignItems: 'center', paddingTop: 60 },
-  emptyTitle: { color: Colors.charcoalDeep, fontSize: 18, fontWeight: '700', marginTop: 12 },
+  emptyTitle: { color: Colors.blackDeep, fontSize: 18, fontWeight: '700', marginTop: 12 },
 });

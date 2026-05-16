@@ -31,7 +31,7 @@ function GoldTraceLine() {
     <Animated.View
       style={{
         position: 'absolute', left: 32, width: 2, height: 80,
-        backgroundColor: Colors.goldPrimary, opacity: 0.3,
+        backgroundColor: Colors.greenPrimary, opacity: 0.3,
         borderRadius: 1, transform: [{ translateY }],
       }}
     />
@@ -101,7 +101,7 @@ export default function LandingScreen() {
 
   return (
     <View style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor={Colors.charcoalDeep} />
+      <StatusBar barStyle="light-content" backgroundColor={Colors.blackDeep} />
       <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
 
         {/* ═══ HERO ═══ */}
@@ -142,7 +142,7 @@ export default function LandingScreen() {
               <View style={styles.tracePreview}>
                 <View style={styles.traceHeader}>
                   <View style={styles.traceKMark}>
-                    <Text style={{ color: Colors.charcoalDeep, fontWeight: '900', fontSize: 10 }}>K</Text>
+                    <Text style={{ color: Colors.blackDeep, fontWeight: '900', fontSize: 10 }}>K</Text>
                   </View>
                   <Text style={styles.traceHeaderLabel}>KARIGAR Agent</Text>
                   <Text style={styles.traceHeaderDone}>Mukammal ✓</Text>
@@ -176,8 +176,8 @@ export default function LandingScreen() {
         </View>
 
         {/* ═══ HOW IT WORKS ═══ */}
-        <View style={[styles.section, { backgroundColor: Colors.charcoalDeep }]}>
-          <Text style={[styles.sectionLabel, { color: Colors.goldPrimary }]}>KAISE KAAM KARTA HAI</Text>
+        <View style={[styles.section, { backgroundColor: Colors.blackDeep }]}>
+          <Text style={[styles.sectionLabel, { color: Colors.greenPrimary }]}>KAISE KAAM KARTA HAI</Text>
           <Text style={[styles.sectionTitle, { color: Colors.textOnDark }]}>3 Simple Steps</Text>
           <StepItem number="1" title="Bolo ya Likho" desc="Apni zaroorat batayen — AI samajh jayega" delay={100} />
           <StepItem number="2" title="Agent Dhundhega" desc="Best karigar match karega automatically" delay={200} />
@@ -203,7 +203,7 @@ export default function LandingScreen() {
         <View style={styles.footer}>
           <View style={styles.footerLogoRow}>
             <View style={styles.footerMark}>
-              <Text style={{ color: Colors.charcoalDeep, fontWeight: '900', fontSize: 14 }}>K</Text>
+              <Text style={{ color: Colors.blackDeep, fontWeight: '900', fontSize: 14 }}>K</Text>
             </View>
             <Text style={styles.footerLogo}>KARIGAR</Text>
           </View>
@@ -221,7 +221,7 @@ const styles = StyleSheet.create({
 
   // Hero
   heroSection: {
-    backgroundColor: Colors.charcoalDeep,
+    backgroundColor: Colors.blackDeep,
     paddingHorizontal: Spacing.xl,
     paddingBottom: 40,
     borderBottomLeftRadius: Radius.header,
@@ -231,22 +231,22 @@ const styles = StyleSheet.create({
   logoRow: { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 32, marginTop: 16 },
   logoMark: {
     width: 36, height: 36, borderRadius: 12,
-    backgroundColor: Colors.goldPrimary,
+    backgroundColor: Colors.greenPrimary,
     alignItems: 'center', justifyContent: 'center',
   },
-  logoMarkText: { color: Colors.charcoalDeep, fontWeight: '900', fontSize: 18 },
+  logoMarkText: { color: Colors.blackDeep, fontWeight: '900', fontSize: 18 },
   logoText: { color: Colors.textOnDark, fontSize: 18, fontWeight: '800', letterSpacing: 2 },
 
   heroTagline: { color: Colors.textOnDark, fontSize: 32, fontWeight: '800', lineHeight: 40, marginBottom: 14 },
-  heroHighlight: { color: Colors.goldPrimary },
+  heroHighlight: { color: Colors.greenPrimary },
   heroSub: { color: Colors.textMuted, fontSize: 14, lineHeight: 22, marginBottom: 28 },
 
   ctaButton: {
-    backgroundColor: Colors.goldPrimary, borderRadius: Radius.md,
+    backgroundColor: Colors.greenPrimary, borderRadius: Radius.md,
     paddingVertical: 16, alignItems: 'center', marginBottom: 28,
-    ...Shadows.goldFloat,
+    ...Shadows.greenFloat,
   },
-  ctaText: { color: Colors.charcoalDeep, fontSize: 16, fontWeight: '800' },
+  ctaText: { color: Colors.blackDeep, fontSize: 16, fontWeight: '800' },
 
   // Trace preview
   tracePreview: {
@@ -256,7 +256,7 @@ const styles = StyleSheet.create({
   traceHeader: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 12 },
   traceKMark: {
     width: 22, height: 22, borderRadius: 11,
-    backgroundColor: Colors.goldPrimary,
+    backgroundColor: Colors.greenPrimary,
     alignItems: 'center', justifyContent: 'center',
   },
   traceHeaderLabel: { flex: 1, color: Colors.textMuted, fontSize: 10, fontWeight: '700', letterSpacing: 1 },
@@ -268,10 +268,10 @@ const styles = StyleSheet.create({
   // Sections
   section: { paddingHorizontal: Spacing.xl, paddingVertical: 36 },
   sectionLabel: {
-    color: Colors.goldPrimary, fontSize: 10, fontWeight: '800',
+    color: Colors.greenPrimary, fontSize: 10, fontWeight: '800',
     letterSpacing: 1.5, marginBottom: 6,
   },
-  sectionTitle: { color: Colors.charcoalDeep, fontSize: 24, fontWeight: '800', marginBottom: 20 },
+  sectionTitle: { color: Colors.blackDeep, fontSize: 24, fontWeight: '800', marginBottom: 20 },
 
   // Features
   featureGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 12 },
@@ -283,20 +283,20 @@ const styles = StyleSheet.create({
   },
   featureIcon: {
     width: 44, height: 44, borderRadius: 14,
-    backgroundColor: `${Colors.goldPrimary}15`,
+    backgroundColor: `${Colors.greenPrimary}15`,
     alignItems: 'center', justifyContent: 'center', marginBottom: 12,
   },
-  featureTitle: { color: Colors.charcoalDeep, fontSize: 15, fontWeight: '700', marginBottom: 4 },
+  featureTitle: { color: Colors.blackDeep, fontSize: 15, fontWeight: '700', marginBottom: 4 },
   featureDesc: { color: Colors.textMuted, fontSize: 12 },
 
   // Steps
   stepItem: { flexDirection: 'row', alignItems: 'flex-start', gap: 14, marginBottom: 20 },
   stepNumber: {
     width: 36, height: 36, borderRadius: 18,
-    backgroundColor: Colors.goldPrimary,
+    backgroundColor: Colors.greenPrimary,
     alignItems: 'center', justifyContent: 'center',
   },
-  stepNumberText: { color: Colors.charcoalDeep, fontSize: 16, fontWeight: '900' },
+  stepNumberText: { color: Colors.blackDeep, fontSize: 16, fontWeight: '900' },
   stepTitle: { color: Colors.textOnDark, fontSize: 16, fontWeight: '700', marginBottom: 3 },
   stepDesc: { color: 'rgba(240,237,232,0.5)', fontSize: 13 },
 
@@ -308,18 +308,18 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14, paddingVertical: 8,
     borderWidth: 1, borderColor: Colors.border,
   },
-  trustText: { color: Colors.charcoalDeep, fontSize: 12, fontWeight: '600' },
+  trustText: { color: Colors.blackDeep, fontSize: 12, fontWeight: '600' },
 
   // Footer
   footer: {
-    backgroundColor: Colors.charcoalDeep,
+    backgroundColor: Colors.blackDeep,
     paddingHorizontal: Spacing.xl, paddingVertical: 36,
     alignItems: 'center',
   },
   footerLogoRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 8 },
   footerMark: {
     width: 28, height: 28, borderRadius: 10,
-    backgroundColor: Colors.goldPrimary,
+    backgroundColor: Colors.greenPrimary,
     alignItems: 'center', justifyContent: 'center',
   },
   footerLogo: { color: Colors.textOnDark, fontSize: 16, fontWeight: '800', letterSpacing: 2 },

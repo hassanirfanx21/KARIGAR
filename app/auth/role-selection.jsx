@@ -95,7 +95,7 @@ const styles = StyleSheet.create({
   backBtn: { paddingVertical: 8 },
   backText: { color: Colors.textMuted, fontSize: 14, fontWeight: '600' },
 
-  title: { color: Colors.charcoalDeep, fontSize: 28, fontWeight: '800', marginBottom: 8 },
+  title: { color: Colors.blackDeep, fontSize: 28, fontWeight: '800', marginBottom: 8 },
   subtitle: { color: Colors.textMuted, fontSize: 14, marginBottom: 36, lineHeight: 22 },
 
   cardsRow: { flexDirection: 'row', gap: 14, marginBottom: 36 },
@@ -106,9 +106,9 @@ const styles = StyleSheet.create({
     ...Shadows.card,
   },
   roleCardActive: {
-    borderColor: Colors.goldPrimary,
-    backgroundColor: `${Colors.goldPrimary}08`,
-    ...Shadows.goldFloat,
+    borderColor: Colors.greenPrimary,
+    backgroundColor: `${Colors.greenPrimary}08`,
+    ...Shadows.greenFloat,
   },
   roleIconWrap: {
     width: 80, height: 80, borderRadius: 40,
@@ -117,23 +117,23 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     borderWidth: 2, borderColor: Colors.border,
   },
-  roleIconActive: { borderColor: Colors.goldPrimary, backgroundColor: `${Colors.goldPrimary}15` },
-  roleName: { color: Colors.charcoalDeep, fontSize: 18, fontWeight: '800', marginBottom: 4 },
-  roleNameActive: { color: Colors.goldPrimary },
+  roleIconActive: { borderColor: Colors.greenPrimary, backgroundColor: `${Colors.greenPrimary}15` },
+  roleName: { color: Colors.blackDeep, fontSize: 18, fontWeight: '800', marginBottom: 4 },
+  roleNameActive: { color: Colors.greenPrimary },
   roleDesc: { color: Colors.textMuted, fontSize: 12 },
   checkBadge: {
     position: 'absolute', top: 12, right: 12,
     width: 26, height: 26, borderRadius: 13,
-    backgroundColor: Colors.goldPrimary,
+    backgroundColor: Colors.greenPrimary,
     alignItems: 'center', justifyContent: 'center',
   },
-  checkText: { color: Colors.charcoalDeep, fontWeight: '900', fontSize: 14 },
+  checkText: { color: Colors.blackDeep, fontWeight: '900', fontSize: 14 },
 
   continueBtn: {
-    backgroundColor: Colors.goldPrimary, borderRadius: Radius.md,
+    backgroundColor: Colors.greenPrimary, borderRadius: Radius.md,
     paddingVertical: 16, alignItems: 'center',
-    ...Shadows.goldFloat,
+    ...Shadows.greenFloat,
   },
   continueBtnDisabled: { opacity: 0.3, shadowOpacity: 0 },
-  continueBtnText: { color: Colors.charcoalDeep, fontSize: 16, fontWeight: '800' },
+  continueBtnText: { color: Colors.blackDeep, fontSize: 16, fontWeight: '800' },
 });

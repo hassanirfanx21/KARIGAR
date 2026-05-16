@@ -57,8 +57,8 @@ export default function AvailabilityScreen() {
           <Switch
             value={isAvailable}
             onValueChange={setIsAvailable}
-            trackColor={{ false: "#3a3a3a", true: Colors.goldPrimary }}
-            thumbColor={isAvailable ? Colors.charcoalDeep : Colors.textMuted}
+            trackColor={{ false: "#3a3a3a", true: Colors.greenPrimary }}
+            thumbColor={isAvailable ? Colors.blackDeep : Colors.textMuted}
           />
         </View>
 
@@ -151,8 +151,8 @@ export default function AvailabilityScreen() {
             <Switch
               value={autoAccept}
               onValueChange={setAutoAccept}
-              trackColor={{ false: Colors.border, true: Colors.goldPrimary }}
-              thumbColor={autoAccept ? Colors.charcoalDeep : Colors.textMuted}
+              trackColor={{ false: Colors.border, true: Colors.greenPrimary }}
+              thumbColor={autoAccept ? Colors.blackDeep : Colors.textMuted}
             />
           </View>
         </View>
@@ -176,11 +176,11 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: Colors.border,
   },
-  headerTitle: { color: Colors.charcoalDeep, fontSize: 22, fontWeight: "800" },
+  headerTitle: { color: Colors.blackDeep, fontSize: 22, fontWeight: "800" },
   headerSub: { color: Colors.textMuted, fontSize: 12, marginTop: 2 },
   content: { padding: 16, paddingBottom: 40 },
   sectionLabel: {
-    color: Colors.goldPrimary,
+    color: Colors.greenPrimary,
     fontSize: 10,
     fontWeight: "800",
     letterSpacing: 1.5,
@@ -190,14 +190,14 @@ const styles = StyleSheet.create({
   masterCard: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: Colors.charcoalDeep,
+    backgroundColor: Colors.blackDeep,
     borderRadius: Radius.xl,
     padding: 20,
     marginTop: 16,
     ...Shadows.darkHeader,
   },
   masterTitle: {
-    color: Colors.goldPrimary,
+    color: Colors.greenPrimary,
     fontSize: 18,
     fontWeight: "800",
     marginBottom: 4,
@@ -222,11 +222,11 @@ const styles = StyleSheet.create({
     borderColor: Colors.border,
   },
   dayChipActive: {
-    backgroundColor: Colors.goldPrimary,
-    borderColor: Colors.goldPrimary,
+    backgroundColor: Colors.greenPrimary,
+    borderColor: Colors.greenPrimary,
   },
-  dayText: { color: Colors.charcoalLight, fontSize: 12, fontWeight: "700" },
-  dayTextActive: { color: Colors.charcoalDeep },
+  dayText: { color: Colors.blackLight, fontSize: 12, fontWeight: "700" },
+  dayTextActive: { color: Colors.blackDeep },
   daysInfo: {
     color: Colors.textMuted,
     fontSize: 12,
@@ -257,21 +257,21 @@ const styles = StyleSheet.create({
     borderColor: Colors.border,
     alignItems: "center",
   },
-  timeValue: { color: Colors.charcoalDeep, fontSize: 16, fontWeight: "700" },
+  timeValue: { color: Colors.blackDeep, fontSize: 16, fontWeight: "700" },
   timeSep: {
-    color: Colors.goldPrimary,
+    color: Colors.greenPrimary,
     fontSize: 20,
     fontWeight: "700",
     marginTop: 16,
   },
   hoursSummary: {
     marginTop: 12,
-    backgroundColor: `${Colors.goldPrimary}10`,
+    backgroundColor: `${Colors.greenPrimary}10`,
     borderRadius: 10,
     padding: 10,
     alignItems: "center",
   },
-  hoursText: { color: Colors.goldPrimary, fontSize: 13, fontWeight: "600" },
+  hoursText: { color: Colors.greenPrimary, fontSize: 13, fontWeight: "600" },
   rangeCard: {
     backgroundColor: Colors.whitePure,
     borderRadius: Radius.lg,
@@ -281,7 +281,7 @@ const styles = StyleSheet.create({
     ...Shadows.card,
   },
   rangeTitle: {
-    color: Colors.charcoalDeep,
+    color: Colors.blackDeep,
     fontSize: 14,
     fontWeight: "600",
     marginBottom: 12,
@@ -297,11 +297,11 @@ const styles = StyleSheet.create({
     borderColor: Colors.border,
   },
   rangeChipActive: {
-    backgroundColor: Colors.goldPrimary,
-    borderColor: Colors.goldPrimary,
+    backgroundColor: Colors.greenPrimary,
+    borderColor: Colors.greenPrimary,
   },
-  rangeText: { color: Colors.charcoalLight, fontSize: 13, fontWeight: "700" },
-  rangeTextActive: { color: Colors.charcoalDeep },
+  rangeText: { color: Colors.blackLight, fontSize: 13, fontWeight: "700" },
+  rangeTextActive: { color: Colors.blackDeep },
   prefCard: {
     backgroundColor: Colors.whitePure,
     borderRadius: Radius.lg,
@@ -312,19 +312,19 @@ const styles = StyleSheet.create({
   },
   prefRow: { flexDirection: "row", alignItems: "center" },
   prefTitle: {
-    color: Colors.charcoalDeep,
+    color: Colors.blackDeep,
     fontSize: 14,
     fontWeight: "700",
     marginBottom: 2,
   },
   prefSub: { color: Colors.textMuted, fontSize: 12 },
   saveBtn: {
-    backgroundColor: Colors.goldPrimary,
+    backgroundColor: Colors.greenPrimary,
     borderRadius: Radius.md,
     paddingVertical: 16,
     alignItems: "center",
     marginTop: 24,
-    ...Shadows.goldFloat,
+    ...Shadows.greenFloat,
   },
-  saveBtnText: { color: Colors.charcoalDeep, fontSize: 16, fontWeight: "800" },
+  saveBtnText: { color: Colors.blackDeep, fontSize: 16, fontWeight: "800" },
 });

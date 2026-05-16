@@ -11,7 +11,7 @@ const { width: W } = Dimensions.get('window');
 
 const STATUS = {
   confirmed:   { label: 'CONFIRMED',   color: Colors.confirmed,  bg: Colors.confirmedBg  },
-  in_progress: { label: 'IN PROGRESS', color: Colors.goldPrimary, bg: Colors.inProgressBg },
+  in_progress: { label: 'IN PROGRESS', color: Colors.greenPrimary, bg: Colors.inProgressBg },
   completed:   { label: 'COMPLETED',   color: Colors.done,       bg: Colors.doneBg       },
   pending:     { label: 'PENDING',     color: Colors.pendingOrange, bg: Colors.pendingBg  },
 };
@@ -30,13 +30,13 @@ function AvailabilityToggle({ isOn, onToggle }) {
     Animated.spring(anim, { toValue: isOn ? 0 : 1, useNativeDriver: false, tension: 70, friction: 9 }).start();
     onToggle();
   }, [isOn, onToggle, anim]);
-  const trackBg = anim.interpolate({ inputRange: [0, 1], outputRange: ['rgba(255,255,255,0.10)', Colors.goldPrimary] });
+  const trackBg = anim.interpolate({ inputRange: [0, 1], outputRange: ['rgba(255,255,255,0.10)', Colors.greenPrimary] });
   const thumbX = anim.interpolate({ inputRange: [0, 1], outputRange: [3, 30] });
 
   return (
     <TouchableOpacity onPress={handlePress} activeOpacity={0.9} style={styles.toggleRow}>
       <View style={styles.toggleTextWrap}>
-        <Text style={[styles.toggleStatus, { color: isOn ? Colors.goldPrimary : 'rgba(240,237,232,0.45)' }]}>{isOn ? '● Online' : '○ Offline'}</Text>
+        <Text style={[styles.toggleStatus, { color: isOn ? Colors.greenPrimary : 'rgba(240,237,232,0.45)' }]}>{isOn ? '● Online' : '○ Offline'}</Text>
         <Text style={styles.toggleSub}>{isOn ? 'Bookings chal rahi hain' : 'Bookings band hain'}</Text>
       </View>
       <Animated.View style={[styles.toggleTrack, { backgroundColor: trackBg }]}>
@@ -65,7 +65,7 @@ export default function WorkerDashboardScreen() {
 
   return (
     <View style={styles.root}>
-      <StatusBar barStyle="light-content" backgroundColor={Colors.charcoalDeep} />
+      <StatusBar barStyle="light-content" backgroundColor={Colors.blackDeep} />
       <ScrollView style={{ flex: 1 }} contentContainerStyle={{ flexGrow: 1 }} showsVerticalScrollIndicator={false}>
         {/* Dark Header */}
         <View style={styles.header}>
@@ -125,7 +125,7 @@ export default function WorkerDashboardScreen() {
             const s = STATUS[job.status];
             return (
               <View key={job.id} style={styles.jobCard}>
-                <View style={[styles.jobAccent, { backgroundColor: job.status === 'completed' ? Colors.done : Colors.goldPrimary }]} />
+                <View style={[styles.jobAccent, { backgroundColor: job.status === 'completed' ? Colors.done : Colors.greenPrimary }]} />
                 <View style={styles.jobBody}>
                   <View style={styles.jobRow}>
                     <Text style={styles.jobTime}>{job.timeStart} – {job.timeEnd}</Text>
@@ -152,13 +152,13 @@ export default function WorkerDashboardScreen() {
 
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: Colors.whiteSoft },
-  header: { backgroundColor: Colors.charcoalDeep, borderBottomLeftRadius: Radius.header, borderBottomRightRadius: Radius.header, ...Shadows.darkHeader },
+  header: { backgroundColor: Colors.blackDeep, borderBottomLeftRadius: Radius.header, borderBottomRightRadius: Radius.header, ...Shadows.darkHeader },
   headerInner: { paddingHorizontal: Spacing.xxl, paddingTop: Platform.OS === 'android' ? (StatusBar.currentHeight ?? 24) + 12 : 20, paddingBottom: Spacing.xxl },
   headerTopRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 16 },
   greeting: { fontSize: 13, color: 'rgba(240,237,232,0.55)' },
   workerName: { fontSize: 28, color: Colors.textOnDark, fontWeight: '800', marginTop: 2 },
   notifBtn: { width: 42, height: 42, borderRadius: 14, backgroundColor: 'rgba(255,255,255,0.08)', alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: 'rgba(255,255,255,0.06)' },
-  notifDot: { position: 'absolute', top: 8, right: 8, width: 8, height: 8, borderRadius: 4, backgroundColor: Colors.goldPrimary },
+  notifDot: { position: 'absolute', top: 8, right: 8, width: 8, height: 8, borderRadius: 4, backgroundColor: Colors.greenPrimary },
   toggleRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: 'rgba(255,255,255,0.06)', borderRadius: Radius.md, borderWidth: 1, borderColor: 'rgba(255,255,255,0.07)', paddingHorizontal: Spacing.lg, paddingVertical: 14, marginBottom: Spacing.lg },
   toggleTextWrap: { flex: 1, marginRight: 12 },
   toggleStatus: { fontSize: 14, fontWeight: '700', marginBottom: 2 },
@@ -172,28 +172,28 @@ const styles = StyleSheet.create({
   statLbl: { fontSize: 10, color: 'rgba(240,237,232,0.45)', marginTop: 3, textAlign: 'center' },
   statDiv: { width: 0.5, backgroundColor: 'rgba(255,255,255,0.1)', marginVertical: 12 },
   body: { paddingHorizontal: Spacing.lg, paddingTop: Spacing.xl },
-  alertCard: { backgroundColor: Colors.goldPrimary, borderRadius: Radius.xl, padding: Spacing.xl, marginBottom: Spacing.xxl, ...Shadows.goldFloat },
+  alertCard: { backgroundColor: Colors.greenPrimary, borderRadius: Radius.xl, padding: Spacing.xl, marginBottom: Spacing.xxl, ...Shadows.greenFloat },
   alertTopRow: { flexDirection: 'row', alignItems: 'center', marginBottom: Spacing.sm },
   alertIconBg: { width: 36, height: 36, borderRadius: 18, backgroundColor: 'rgba(26,24,20,0.12)', alignItems: 'center', justifyContent: 'center', marginRight: 10 },
-  alertTitle: { fontSize: 20, fontWeight: '700', color: Colors.charcoalDeep, flex: 1 },
-  alertLivePill: { backgroundColor: Colors.charcoalDeep, borderRadius: Radius.full, paddingHorizontal: 8, paddingVertical: 3 },
-  alertLiveText: { fontSize: 10, color: Colors.goldPrimary, fontWeight: '700', letterSpacing: 1 },
-  alertService: { fontSize: 17, fontWeight: '600', color: Colors.charcoalDeep, marginBottom: Spacing.md },
+  alertTitle: { fontSize: 20, fontWeight: '700', color: Colors.blackDeep, flex: 1 },
+  alertLivePill: { backgroundColor: Colors.blackDeep, borderRadius: Radius.full, paddingHorizontal: 8, paddingVertical: 3 },
+  alertLiveText: { fontSize: 10, color: Colors.greenPrimary, fontWeight: '700', letterSpacing: 1 },
+  alertService: { fontSize: 17, fontWeight: '600', color: Colors.blackDeep, marginBottom: Spacing.md },
   alertDetails: { marginBottom: Spacing.sm },
   alertDetailRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 5 },
-  alertDetailText: { fontSize: 13, color: Colors.charcoalMid },
+  alertDetailText: { fontSize: 13, color: Colors.blackMid },
   alertDistRow: { flexDirection: 'row', alignItems: 'center', marginBottom: Spacing.lg },
-  distDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: Colors.charcoalDeep, marginRight: 8 },
-  alertDistText: { fontSize: 13, color: Colors.charcoalMid, fontWeight: '500' },
+  distDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: Colors.blackDeep, marginRight: 8 },
+  alertDistText: { fontSize: 13, color: Colors.blackMid, fontWeight: '500' },
   alertDivider: { height: 1, backgroundColor: 'rgba(26,24,20,0.12)', marginBottom: Spacing.lg },
   alertBtns: { flexDirection: 'row', gap: 10 },
   acceptBtn: { flex: 1, backgroundColor: Colors.whitePure, borderRadius: Radius.md, height: 46, alignItems: 'center', justifyContent: 'center', elevation: 2 },
-  acceptBtnText: { fontSize: 14, fontWeight: '700', color: Colors.charcoalDeep },
-  declineBtn: { flex: 1, borderWidth: 1.5, borderColor: Colors.charcoalDeep, borderRadius: Radius.md, height: 46, alignItems: 'center', justifyContent: 'center' },
-  declineBtnText: { fontSize: 14, fontWeight: '700', color: Colors.charcoalDeep },
+  acceptBtnText: { fontSize: 14, fontWeight: '700', color: Colors.blackDeep },
+  declineBtn: { flex: 1, borderWidth: 1.5, borderColor: Colors.blackDeep, borderRadius: Radius.md, height: 46, alignItems: 'center', justifyContent: 'center' },
+  declineBtnText: { fontSize: 14, fontWeight: '700', color: Colors.blackDeep },
   sectionHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: Spacing.md },
-  sectionLabel: { fontSize: 11, fontWeight: '700', color: Colors.goldPrimary, letterSpacing: 1.5 },
-  viewAll: { fontSize: 13, color: Colors.goldPrimary, fontWeight: '500' },
+  sectionLabel: { fontSize: 11, fontWeight: '700', color: Colors.greenPrimary, letterSpacing: 1.5 },
+  viewAll: { fontSize: 13, color: Colors.greenPrimary, fontWeight: '500' },
   jobCard: { backgroundColor: Colors.whitePure, borderRadius: Radius.lg, borderWidth: 1, borderColor: Colors.borderLight, marginBottom: 12, flexDirection: 'row', overflow: 'hidden', ...Shadows.card },
   jobAccent: { width: 4 },
   jobBody: { flex: 1, padding: Spacing.lg },
@@ -207,7 +207,7 @@ const styles = StyleSheet.create({
   jobLocText: { fontSize: 12, color: Colors.textMuted, flex: 1, lineHeight: 18 },
   jobDivider: { height: 1, backgroundColor: Colors.borderLight, marginBottom: Spacing.md },
   jobFooter: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  jobPrice: { fontSize: 16, fontWeight: '700', color: Colors.goldPrimary },
+  jobPrice: { fontSize: 16, fontWeight: '700', color: Colors.greenPrimary },
   detailsBtn: { borderWidth: 1.5, borderColor: Colors.borderLight, borderRadius: 8, paddingHorizontal: 12, paddingVertical: 7 },
   detailsBtnText: { fontSize: 12, fontWeight: '700', color: Colors.textDark },
 });

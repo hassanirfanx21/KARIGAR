@@ -67,9 +67,9 @@ const styles = StyleSheet.create({
   },
   tabItem: { alignItems: 'center', justifyContent: 'center', gap: 2 },
   tabLabel: { color: Colors.textMuted, fontSize: 10, fontWeight: '600' },
-  tabLabelActive: { color: Colors.goldPrimary, fontWeight: '700' },
+  tabLabelActive: { color: Colors.greenPrimary, fontWeight: '700' },
   tabDot: {
     width: 4, height: 4, borderRadius: 2,
-    backgroundColor: Colors.goldPrimary, marginTop: 2,
+    backgroundColor: Colors.greenPrimary, marginTop: 2,
   },
 });

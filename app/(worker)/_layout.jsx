@@ -25,11 +25,11 @@ export default function WorkerLayout() {
 
 const styles = StyleSheet.create({
   tabBar: {
-    backgroundColor: Colors.charcoalDeep, borderTopWidth: 1, borderTopColor: Colors.darkBorder,
+    backgroundColor: Colors.blackDeep, borderTopWidth: 1, borderTopColor: Colors.darkBorder,
     height: 72, paddingBottom: 8, paddingTop: 8, elevation: 12,
   },
   tabItem: { alignItems: 'center', justifyContent: 'center', gap: 2 },
   tabLabel: { color: Colors.textMuted, fontSize: 10, fontWeight: '600' },
-  tabLabelActive: { color: Colors.goldPrimary, fontWeight: '700' },
-  tabDot: { width: 4, height: 4, borderRadius: 2, backgroundColor: Colors.goldPrimary, marginTop: 2 },
+  tabLabelActive: { color: Colors.greenPrimary, fontWeight: '700' },
+  tabDot: { width: 4, height: 4, borderRadius: 2, backgroundColor: Colors.greenPrimary, marginTop: 2 },
 });

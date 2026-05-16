@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import {
   View, Text, ScrollView, TouchableOpacity, TextInput,
-  StyleSheet, Dimensions, StatusBar,
+  StyleSheet, Dimensions, StatusBar, KeyboardAvoidingView, Platform
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { Bell, MapPin } from 'lucide-react-native';
 import { useRouter } from 'expo-router';
 import { Colors, Shadows, Spacing, Radius } from '../../constants/theme';
 
@@ -38,9 +39,12 @@ export default function CustomerHomeScreen() {
   };
 
   return (
-    <View style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor={Colors.charcoalDeep} />
-      <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
+    <KeyboardAvoidingView 
+      style={styles.container}
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+    >
+      <StatusBar barStyle="light-content" backgroundColor={Colors.blackDeep} />
+      <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
 
         {/* ═══ DARK HEADER ═══ */}
         <View style={styles.headerSection}>
@@ -52,14 +56,14 @@ export default function CustomerHomeScreen() {
                   <Text style={styles.userName}>Ahmed Khan 👋</Text>
                 </View>
                 <TouchableOpacity style={styles.notifBtn} onPress={() => router.push('/notifications')}>
-                  <Text style={{ fontSize: 18 }}>🔔</Text>
+                  <Bell size={20} color={Colors.textOnDark} />
                   <View style={styles.notifDot} />
                 </TouchableOpacity>
               </View>
 
               {/* Location */}
               <View style={styles.locationRow}>
-                <Text style={{ fontSize: 14 }}>📍</Text>
+                <MapPin size={14} color={Colors.textMuted} />
                 <Text style={styles.locationText}>G-13, Islamabad</Text>
                 <Text style={styles.locationChange}>Badlein</Text>
               </View>
@@ -156,7 +160,7 @@ export default function CustomerHomeScreen() {
       <View style={styles.inputBar}>
         <View style={styles.inputRow}>
           <View style={styles.kMark}>
-            <Text style={{ color: Colors.charcoalDeep, fontWeight: '900', fontSize: 10 }}>K</Text>
+            <Text style={{ color: Colors.blackDeep, fontWeight: '900', fontSize: 10 }}>K</Text>
           </View>
           <TextInput
             style={styles.textInput}
@@ -172,7 +176,7 @@ export default function CustomerHomeScreen() {
           </TouchableOpacity>
         </View>
       </View>
-    </View>
+    </KeyboardAvoidingView>
   );
 }
 
@@ -181,7 +185,7 @@ const styles = StyleSheet.create({
   scroll: { flexGrow: 1 },
 
   headerSection: {
-    backgroundColor: Colors.charcoalDeep,
+    backgroundColor: Colors.blackDeep,
     borderBottomLeftRadius: Radius.header, borderBottomRightRadius: Radius.header,
     ...Shadows.darkHeader,
   },
@@ -198,15 +202,15 @@ const styles = StyleSheet.create({
   notifDot: {
     position: 'absolute', top: 8, right: 8,
     width: 8, height: 8, borderRadius: 4,
-    backgroundColor: Colors.goldPrimary,
+    backgroundColor: Colors.greenPrimary,
   },
   locationRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   locationText: { color: Colors.textOnDark, fontSize: 13, fontWeight: '600', flex: 1 },
-  locationChange: { color: Colors.goldPrimary, fontSize: 12, fontWeight: '700' },
+  locationChange: { color: Colors.greenPrimary, fontSize: 12, fontWeight: '700' },
 
   section: { paddingHorizontal: Spacing.xl, marginTop: 24 },
-  sectionLabel: { color: Colors.goldPrimary, fontSize: 10, fontWeight: '800', letterSpacing: 1.5, marginBottom: 6 },
-  sectionTitle: { color: Colors.charcoalDeep, fontSize: 20, fontWeight: '800', marginBottom: 16 },
+  sectionLabel: { color: Colors.greenPrimary, fontSize: 10, fontWeight: '800', letterSpacing: 1.5, marginBottom: 6 },
+  sectionTitle: { color: Colors.blackDeep, fontSize: 20, fontWeight: '800', marginBottom: 16 },
 
   serviceRow: { gap: 12, paddingRight: 20 },
   serviceChip: { alignItems: 'center', width: 76 },
@@ -217,28 +221,28 @@ const styles = StyleSheet.create({
     borderWidth: 1.5, borderColor: Colors.border, marginBottom: 6,
     ...Shadows.card,
   },
-  serviceEmojiActive: { borderColor: Colors.goldPrimary, backgroundColor: `${Colors.goldPrimary}12` },
-  serviceLabel: { color: Colors.charcoalLight, fontSize: 11, fontWeight: '600', textAlign: 'center' },
-  serviceLabelActive: { color: Colors.goldPrimary, fontWeight: '700' },
+  serviceEmojiActive: { borderColor: Colors.greenPrimary, backgroundColor: `${Colors.greenPrimary}12` },
+  serviceLabel: { color: Colors.blackLight, fontSize: 11, fontWeight: '600', textAlign: 'center' },
+  serviceLabelActive: { color: Colors.greenPrimary, fontWeight: '700' },
 
   bookingCard: {
-    backgroundColor: Colors.brownMatte, borderRadius: Radius.xl, padding: 18,
+    backgroundColor: Colors.grayMatte, borderRadius: Radius.xl, padding: 18,
     ...Shadows.cardHeavy,
   },
   bookingTopRow: { flexDirection: 'row', alignItems: 'center' },
   bookingAvatar: {
     width: 48, height: 48, borderRadius: 24,
-    backgroundColor: `${Colors.goldPrimary}25`,
+    backgroundColor: `${Colors.greenPrimary}25`,
     alignItems: 'center', justifyContent: 'center',
   },
   bookingWorker: { color: Colors.textOnDark, fontSize: 16, fontWeight: '700' },
-  bookingService: { color: Colors.goldLight, fontSize: 12, marginTop: 2 },
+  bookingService: { color: Colors.greenLight, fontSize: 12, marginTop: 2 },
   statusBadge: { backgroundColor: `${Colors.successGreen}20`, paddingHorizontal: 10, paddingVertical: 4, borderRadius: Radius.full },
   statusText: { color: Colors.successGreen, fontSize: 10, fontWeight: '700' },
-  bookingDivider: { height: 1, backgroundColor: `${Colors.goldPrimary}30`, marginVertical: 14 },
+  bookingDivider: { height: 1, backgroundColor: `${Colors.greenPrimary}30`, marginVertical: 14 },
   bookingBottomRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   bookingDate: { color: Colors.textOnDark, fontSize: 13, opacity: 0.8 },
-  bookingCta: { color: Colors.goldPrimary, fontSize: 13, fontWeight: '700' },
+  bookingCta: { color: Colors.greenPrimary, fontSize: 13, fontWeight: '700' },
 
   nearbyCard: {
     backgroundColor: Colors.whitePure, borderRadius: Radius.xl, padding: 20,
@@ -246,9 +250,9 @@ const styles = StyleSheet.create({
     borderWidth: 1, borderColor: Colors.border, ...Shadows.card,
   },
   nearbyInner: { flex: 1 },
-  nearbyTitle: { color: Colors.charcoalDeep, fontSize: 16, fontWeight: '700', marginBottom: 4 },
+  nearbyTitle: { color: Colors.blackDeep, fontSize: 16, fontWeight: '700', marginBottom: 4 },
   nearbySub: { color: Colors.textMuted, fontSize: 12 },
-  nearbyArrow: { color: Colors.goldPrimary, fontSize: 24, fontWeight: '700' },
+  nearbyArrow: { color: Colors.greenPrimary, fontSize: 24, fontWeight: '700' },
 
   stepsRow: { flexDirection: 'row', gap: 10 },
   stepCard: {
@@ -256,11 +260,11 @@ const styles = StyleSheet.create({
     alignItems: 'center', borderWidth: 1, borderColor: Colors.border,
   },
   stepNum: {
-    width: 30, height: 30, borderRadius: 15, backgroundColor: Colors.goldPrimary,
+    width: 30, height: 30, borderRadius: 15, backgroundColor: Colors.greenPrimary,
     alignItems: 'center', justifyContent: 'center', marginBottom: 8,
   },
-  stepNumText: { color: Colors.charcoalDeep, fontWeight: '900', fontSize: 14 },
-  stepTitle: { color: Colors.charcoalDeep, fontSize: 13, fontWeight: '700', marginBottom: 2 },
+  stepNumText: { color: Colors.blackDeep, fontWeight: '900', fontSize: 14 },
+  stepTitle: { color: Colors.blackDeep, fontSize: 13, fontWeight: '700', marginBottom: 2 },
   stepDesc: { color: Colors.textMuted, fontSize: 10, textAlign: 'center' },
 
   inputBar: {
@@ -272,19 +276,19 @@ const styles = StyleSheet.create({
   inputRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
   kMark: {
     width: 30, height: 30, borderRadius: 10,
-    backgroundColor: Colors.goldPrimary,
+    backgroundColor: Colors.greenPrimary,
     alignItems: 'center', justifyContent: 'center',
   },
   textInput: {
     flex: 1, backgroundColor: Colors.whiteSoft, borderRadius: Radius.md,
     paddingHorizontal: 14, paddingVertical: 12,
     borderWidth: 1, borderColor: Colors.border,
-    fontSize: 14, color: Colors.charcoalDeep,
+    fontSize: 14, color: Colors.blackDeep,
   },
   sendBtn: {
     width: 42, height: 42, borderRadius: 14,
-    backgroundColor: Colors.goldPrimary,
+    backgroundColor: Colors.greenPrimary,
     alignItems: 'center', justifyContent: 'center',
   },
-  sendBtnText: { color: Colors.charcoalDeep, fontSize: 18, fontWeight: '900' },
+  sendBtnText: { color: Colors.blackDeep, fontSize: 18, fontWeight: '900' },
 });

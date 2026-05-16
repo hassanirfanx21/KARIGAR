@@ -63,7 +63,7 @@ export default function LoginScreen() {
           <View style={styles.topBar}>
             <View style={styles.logoRow}>
               <View style={styles.logoMark}>
-                <Text style={{ color: Colors.charcoalDeep, fontWeight: '900', fontSize: 14 }}>K</Text>
+                <Text style={{ color: Colors.blackDeep, fontWeight: '900', fontSize: 14 }}>K</Text>
               </View>
               <Text style={styles.logoText}>KARIGAR</Text>
             </View>
@@ -169,13 +169,13 @@ export default function LoginScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: Colors.charcoalDeep },
+  container: { flex: 1, backgroundColor: Colors.blackDeep },
   backdrop: { flex: 1 },
   topBar: { paddingHorizontal: Spacing.xl, paddingTop: 16 },
   logoRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
   logoMark: {
     width: 32, height: 32, borderRadius: 10,
-    backgroundColor: Colors.goldPrimary,
+    backgroundColor: Colors.greenPrimary,
     alignItems: 'center', justifyContent: 'center',
   },
   logoText: { color: Colors.textOnDark, fontSize: 16, fontWeight: '800', letterSpacing: 2 },
@@ -190,7 +190,7 @@ const styles = StyleSheet.create({
   handle: { width: 44, height: 4, borderRadius: 2, backgroundColor: Colors.border },
 
   sheetContent: { paddingHorizontal: Spacing.xxl, paddingBottom: 40, paddingTop: 16 },
-  sheetTitle: { color: Colors.charcoalDeep, fontSize: 24, fontWeight: '800', marginBottom: 6 },
+  sheetTitle: { color: Colors.blackDeep, fontSize: 24, fontWeight: '800', marginBottom: 6 },
   sheetSubtitle: { color: Colors.textMuted, fontSize: 14, marginBottom: 28 },
 
   phoneInputRow: { flexDirection: 'row', gap: 10, marginBottom: 20 },
@@ -201,22 +201,22 @@ const styles = StyleSheet.create({
     borderWidth: 1, borderColor: Colors.border,
   },
   countryFlag: { fontSize: 18 },
-  countryText: { color: Colors.charcoalDeep, fontSize: 15, fontWeight: '700' },
+  countryText: { color: Colors.blackDeep, fontSize: 15, fontWeight: '700' },
   phoneInput: {
     flex: 1, backgroundColor: Colors.whiteSoft, borderRadius: Radius.md,
     paddingHorizontal: 16, paddingVertical: 14,
     borderWidth: 1, borderColor: Colors.border,
-    fontSize: 16, fontWeight: '600', color: Colors.charcoalDeep,
+    fontSize: 16, fontWeight: '600', color: Colors.blackDeep,
     letterSpacing: 1,
   },
 
   ctaBtn: {
-    backgroundColor: Colors.goldPrimary, borderRadius: Radius.md,
+    backgroundColor: Colors.greenPrimary, borderRadius: Radius.md,
     paddingVertical: 16, alignItems: 'center',
-    ...Shadows.goldFloat,
+    ...Shadows.greenFloat,
   },
   ctaBtnDisabled: { opacity: 0.4, ...{ shadowOpacity: 0 } },
-  ctaBtnText: { color: Colors.charcoalDeep, fontSize: 16, fontWeight: '800' },
+  ctaBtnText: { color: Colors.blackDeep, fontSize: 16, fontWeight: '800' },
 
   termsText: {
     color: Colors.textMuted, fontSize: 11, textAlign: 'center',
@@ -229,12 +229,12 @@ const styles = StyleSheet.create({
     borderWidth: 1.5, borderColor: Colors.border,
     backgroundColor: Colors.whiteSoft,
     textAlign: 'center', fontSize: 24, fontWeight: '800',
-    color: Colors.charcoalDeep,
+    color: Colors.blackDeep,
   },
-  otpBoxFilled: { borderColor: Colors.goldPrimary, backgroundColor: `${Colors.goldPrimary}10` },
+  otpBoxFilled: { borderColor: Colors.greenPrimary, backgroundColor: `${Colors.greenPrimary}10` },
 
   resendRow: { alignItems: 'center', marginTop: 20 },
   resendTimer: { color: Colors.textMuted, fontSize: 13 },
-  resendActive: { color: Colors.goldPrimary, fontSize: 14, fontWeight: '700' },
+  resendActive: { color: Colors.greenPrimary, fontSize: 14, fontWeight: '700' },
   changeNumber: { color: Colors.textMuted, fontSize: 13, textAlign: 'center', marginTop: 12 },
 });

@@ -214,28 +214,28 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.whitePure, borderBottomWidth: 1, borderBottomColor: Colors.border,
   },
   backText: { color: Colors.textMuted, fontSize: 13, fontWeight: '600' },
-  headerTitle: { color: Colors.charcoalDeep, fontSize: 16, fontWeight: '700' },
-  stepNum: { color: Colors.goldPrimary, fontSize: 12, fontWeight: '700' },
+  headerTitle: { color: Colors.blackDeep, fontSize: 16, fontWeight: '700' },
+  stepNum: { color: Colors.greenPrimary, fontSize: 12, fontWeight: '700' },
 
   progressBar: {
     height: 3, backgroundColor: Colors.border, marginHorizontal: Spacing.xl, marginTop: 12,
     borderRadius: 2, overflow: 'hidden',
   },
-  progressFill: { height: 3, backgroundColor: Colors.goldPrimary, borderRadius: 2 },
+  progressFill: { height: 3, backgroundColor: Colors.greenPrimary, borderRadius: 2 },
 
   content: { paddingHorizontal: Spacing.xl, paddingTop: 28, paddingBottom: 40 },
-  stepTitle: { color: Colors.charcoalDeep, fontSize: 22, fontWeight: '800', marginBottom: 6 },
+  stepTitle: { color: Colors.blackDeep, fontSize: 22, fontWeight: '800', marginBottom: 6 },
   stepSub: { color: Colors.textMuted, fontSize: 14, marginBottom: 24 },
 
   label: {
-    color: Colors.charcoalLight, fontSize: 12, fontWeight: '700',
+    color: Colors.blackLight, fontSize: 12, fontWeight: '700',
     letterSpacing: 0.5, marginBottom: 6, marginTop: 14,
   },
   input: {
     backgroundColor: Colors.whitePure, borderRadius: Radius.md,
     paddingHorizontal: 16, paddingVertical: 14,
     borderWidth: 1, borderColor: Colors.border,
-    fontSize: 15, color: Colors.charcoalDeep,
+    fontSize: 15, color: Colors.blackDeep,
   },
 
   tagsGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginBottom: 16 },
@@ -244,25 +244,25 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14, paddingVertical: 10, borderRadius: Radius.full,
     backgroundColor: Colors.whitePure, borderWidth: 1.5, borderColor: Colors.border,
   },
-  tagSelected: { backgroundColor: `${Colors.goldPrimary}15`, borderColor: Colors.goldPrimary },
-  tagText: { color: Colors.charcoalLight, fontSize: 13, fontWeight: '600' },
-  tagTextSelected: { color: Colors.goldPrimary, fontWeight: '700' },
+  tagSelected: { backgroundColor: `${Colors.greenPrimary}15`, borderColor: Colors.greenPrimary },
+  tagText: { color: Colors.blackLight, fontSize: 13, fontWeight: '600' },
+  tagTextSelected: { color: Colors.greenPrimary, fontWeight: '700' },
 
   timeRow: { flexDirection: 'row', gap: 12, marginBottom: 8 },
   timeBox: {
     backgroundColor: Colors.whitePure, borderRadius: Radius.md, padding: 14,
     borderWidth: 1, borderColor: Colors.border, alignItems: 'center',
   },
-  timeText: { color: Colors.charcoalDeep, fontSize: 15, fontWeight: '700' },
+  timeText: { color: Colors.blackDeep, fontSize: 15, fontWeight: '700' },
 
   rangeRow: { flexDirection: 'row', gap: 10, marginTop: 8, marginBottom: 20 },
   rangeChip: {
     flex: 1, paddingVertical: 12, borderRadius: Radius.md, alignItems: 'center',
     backgroundColor: Colors.whitePure, borderWidth: 1.5, borderColor: Colors.border,
   },
-  rangeChipActive: { backgroundColor: Colors.goldPrimary, borderColor: Colors.goldPrimary },
-  rangeText: { color: Colors.charcoalLight, fontSize: 13, fontWeight: '700' },
-  rangeTextActive: { color: Colors.charcoalDeep },
+  rangeChipActive: { backgroundColor: Colors.greenPrimary, borderColor: Colors.greenPrimary },
+  rangeText: { color: Colors.blackLight, fontSize: 13, fontWeight: '700' },
+  rangeTextActive: { color: Colors.blackDeep },
 
   reviewCard: {
     backgroundColor: Colors.whitePure, borderRadius: Radius.lg, padding: 16,
@@ -273,13 +273,13 @@ const styles = StyleSheet.create({
     paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: `${Colors.border}80`,
   },
   reviewLabel: { color: Colors.textMuted, fontSize: 12, fontWeight: '600' },
-  reviewValue: { color: Colors.charcoalDeep, fontSize: 13, fontWeight: '700', textAlign: 'right', flex: 1, marginLeft: 12 },
+  reviewValue: { color: Colors.blackDeep, fontSize: 13, fontWeight: '700', textAlign: 'right', flex: 1, marginLeft: 12 },
 
   btn: {
-    backgroundColor: Colors.goldPrimary, borderRadius: Radius.md,
+    backgroundColor: Colors.greenPrimary, borderRadius: Radius.md,
     paddingVertical: 16, alignItems: 'center', marginTop: 24,
-    ...Shadows.goldFloat,
+    ...Shadows.greenFloat,
   },
   btnOff: { opacity: 0.3, shadowOpacity: 0 },
-  btnText: { color: Colors.charcoalDeep, fontSize: 16, fontWeight: '800' },
+  btnText: { color: Colors.blackDeep, fontSize: 16, fontWeight: '800' },
 });

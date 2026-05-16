@@ -1,58 +1,57 @@
 // ─── KARIGAR Design System ─────────────────────────────────────────────────────
 // Single source of truth for all design tokens across the app.
-// Every screen imports from here — no more duplicated COLORS objects.
 
 export const Colors = {
-  // Primary palette
-  goldPrimary:   '#C49A5A',
-  goldLight:     '#E8D4AA',
-  goldMuted:     '#C49A5A20',
-  goldOnDark:    '#D4AF78',
+  // Primary palette (Emerald Green)
+  greenPrimary:  '#10B981',
+  greenLight:    '#A7F3D0',
+  greenMuted:    '#10B98120',
+  greenOnDark:   '#34D399',
 
-  // Browns
-  brownMatte:    '#5C3D2E',
-  brownLight:    '#7A5A48',
+  // Grays (previously browns/charcoals)
+  grayMatte:     '#F3F4F6', // Light gray replacing brownMatte
+  grayLight:     '#E5E7EB',
 
-  // Charcoals
-  charcoalDeep:  '#1A1A1A',
-  charcoalMid:   '#2A2A2A',
-  charcoalLight: '#6B6B6B',
+  // Blacks
+  blackDeep:     '#111827',
+  blackMid:      '#374151',
+  blackLight:    '#6B7280',
 
   // Whites
   whitePure:     '#FFFFFF',
-  whiteSoft:     '#F7F3EE',
+  whiteSoft:     '#F9FAFB',
 
   // Dark mode surfaces
-  darkBg:        '#141414',
-  darkCard:      '#1E1E1E',
-  darkBorder:    '#2E2E2E',
+  darkBg:        '#111827',
+  darkCard:      '#1F2937',
+  darkBorder:    '#374151',
 
   // Borders
-  border:        '#E0D8D0',
-  borderLight:   '#E8E2D8',
+  border:        '#E5E7EB',
+  borderLight:   '#F3F4F6',
 
   // Text
-  textDark:      '#1A1A1A',
-  textMedium:    '#4A4A4A',
-  textMuted:     '#9E9E9E',
-  textOnDark:    '#F0EDE8',
+  textDark:      '#111827',
+  textMedium:    '#4B5563',
+  textMuted:     '#9CA3AF',
+  textOnDark:    '#F9FAFB',
 
   // Status
-  successGreen:  '#2E7D52',
-  errorRed:      '#C0392B',
-  pendingOrange: '#D4760A',
-  inProgress:    '#C49A5A',
+  successGreen:  '#059669',
+  errorRed:      '#EF4444',
+  pendingOrange: '#F59E0B',
+  inProgress:    '#10B981',
 
   // Status backgrounds
-  confirmedBg:   'rgba(46,125,82,0.12)',
-  confirmed:     '#2E7D52',
-  inProgressBg:  'rgba(196,154,90,0.12)',
-  doneBg:        'rgba(46,125,82,0.08)',
-  done:          '#2E7D52',
-  pendingBg:     'rgba(212,118,10,0.12)',
-  pending:       '#D4760A',
-  cancelledBg:   'rgba(192,57,43,0.12)',
-  successBg:     'rgba(46,125,82,0.12)',
+  confirmedBg:   'rgba(5,150,105,0.12)',
+  confirmed:     '#059669',
+  inProgressBg:  'rgba(16,185,129,0.12)',
+  doneBg:        'rgba(5,150,105,0.08)',
+  done:          '#059669',
+  pendingBg:     'rgba(245,158,11,0.12)',
+  pending:       '#F59E0B',
+  cancelledBg:   'rgba(239,68,68,0.12)',
+  successBg:     'rgba(5,150,105,0.12)',
 };
 
 export const FontSize = {
@@ -110,29 +109,29 @@ export const Shadows = {
   card: {
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.07,
-    shadowRadius: 12,
-    elevation: 3,
+    shadowOpacity: 0.05,
+    shadowRadius: 10,
+    elevation: 2,
   },
   cardHeavy: {
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.12,
-    shadowRadius: 20,
-    elevation: 8,
-  },
-  goldFloat: {
-    shadowColor: '#C49A5A',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.3,
+    shadowOpacity: 0.08,
     shadowRadius: 16,
-    elevation: 10,
+    elevation: 4,
+  },
+  greenFloat: {
+    shadowColor: '#10B981',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.25,
+    shadowRadius: 16,
+    elevation: 8,
   },
   darkHeader: {
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.3,
+    shadowOpacity: 0.05,
     shadowRadius: 20,
-    elevation: 12,
+    elevation: 6,
   },
 };

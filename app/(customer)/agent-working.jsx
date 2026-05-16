@@ -2,7 +2,9 @@ import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Animated, Easing } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, useLocalSearchParams } from 'expo-router';
+import { Calendar, Tag, Key, MapPin, User, CheckCircle2, AlertCircle } from 'lucide-react-native';
 import { Colors, Shadows, Spacing, Radius } from '../../constants/theme';
+import { API_URL } from '../../constants/config';
 
 const STEPS = [
   { id: 1, labelActive: 'Samajh raha hoon...', labelDone: 'Request samajh li ✓', delay: 0, duration: 1200 },
@@ -18,7 +20,7 @@ function SpinnerRing({ size = 18 }) {
     Animated.loop(Animated.timing(spin, { toValue: 1, duration: 900, easing: Easing.linear, useNativeDriver: true })).start();
   }, []);
   const rotate = spin.interpolate({ inputRange: [0, 1], outputRange: ['0deg', '360deg'] });
-  return <Animated.View style={{ width: size, height: size, borderRadius: size/2, borderWidth: 2, borderColor: `${Colors.goldPrimary}40`, borderTopColor: Colors.goldPrimary, transform: [{ rotate }] }} />;
+  return <Animated.View style={{ width: size, height: size, borderRadius: size/2, borderWidth: 2, borderColor: `${Colors.greenPrimary}40`, borderTopColor: Colors.greenPrimary, transform: [{ rotate }] }} />;
 }
 
 export default function AgentWorkingScreen() {
@@ -33,7 +35,7 @@ export default function AgentWorkingScreen() {
 
   useEffect(() => {
     // 1. Trigger actual backend call
-    fetch('http://YOUR_SERVER_IP:3000/api/agent/request', {
+    fetch(`${API_URL}/api/agent/request`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ message: userMessage, language: 'roman_urdu' })
@@ -71,9 +73,9 @@ export default function AgentWorkingScreen() {
         {/* Trace block */}
         <View style={styles.traceBlock}>
           <View style={styles.traceHeader}>
-            <View style={styles.kMark}><Text style={{ color: Colors.charcoalDeep, fontWeight: '900', fontSize: 16 }}>K</Text></View>
+            <View style={styles.kMark}><Text style={{ color: Colors.blackDeep, fontWeight: '900', fontSize: 16 }}>K</Text></View>
             <Text style={styles.traceTitle}>KARIGAR Agent</Text>
-            {statuses.some(s => s === 'active') && <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}><SpinnerRing size={14} /><Text style={{ color: Colors.goldPrimary, fontSize: 11, fontWeight: '600' }}>Processing...</Text></View>}
+            {statuses.some(s => s === 'active') && <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}><SpinnerRing size={14} /><Text style={{ color: Colors.greenPrimary, fontSize: 11, fontWeight: '600' }}>Processing...</Text></View>}
             {allDone && <Text style={{ color: Colors.successGreen, fontSize: 11, fontWeight: '700' }}>Mukammal ✓</Text>}
           </View>
           {STEPS.map((step, i) => {
@@ -98,7 +100,10 @@ export default function AgentWorkingScreen() {
         {/* Error State */}
         {allDone && error && (
           <View style={styles.confirmCard}>
-            <Text style={[styles.confirmTitle, { color: Colors.errorRed }]}>❌ Kuch Masla Hua</Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 10, gap: 8 }}>
+              <AlertCircle size={22} color={Colors.errorRed} />
+              <Text style={[styles.confirmTitle, { color: Colors.errorRed, marginBottom: 0 }]}>Kuch Masla Hua</Text>
+            </View>
             <Text style={{ color: Colors.textOnDark, marginBottom: 15 }}>Hum aapka request process nahi kar sake. Dobara koshish karein.</Text>
             <TouchableOpacity style={styles.ctaGhost} onPress={() => router.back()} activeOpacity={0.7}>
               <Text style={styles.ctaGhostText}>Peechay Jayein</Text>
@@ -109,10 +114,15 @@ export default function AgentWorkingScreen() {
         {/* Confirm card */}
         {allDone && agentResult && !error && (
           <View style={styles.confirmCard}>
-            <Text style={styles.confirmTitle}>✅ Booking Confirm Ho Gayi!</Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 10, gap: 8 }}>
+              <CheckCircle2 size={22} color={Colors.successGreen} />
+              <Text style={[styles.confirmTitle, { marginBottom: 0 }]}>Booking Confirm Ho Gayi!</Text>
+            </View>
             <View style={styles.confirmDivider} />
             <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-              <View style={styles.workerAvatar}><Text style={{ fontSize: 22 }}>👷</Text></View>
+              <View style={styles.workerAvatar}>
+                <User size={26} color={Colors.greenPrimary} />
+              </View>
               <View style={{ flex: 1, marginLeft: 12 }}>
                 <Text style={styles.workerName}>{agentResult.worker?.name || 'Karigar'}</Text>
                 <Text style={styles.workerRating}>{agentResult.worker?.rating || 'New'} ★ Excellent</Text>
@@ -132,7 +142,7 @@ export default function AgentWorkingScreen() {
             ))}
             <TouchableOpacity 
               style={styles.ctaPrimary} 
-              onPress={() => router.push({ 
+              onPress={() => router.replace({ 
                 pathname: '/(customer)/booking-detail', 
                 params: { 
                   bookingId: agentResult?.booking_id, 
@@ -160,29 +170,29 @@ const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: Colors.whitePure },
   scroll: { padding: 20, paddingBottom: 80 },
   bubbleWrap: { alignItems: 'flex-end', marginBottom: 20 },
-  bubble: { backgroundColor: Colors.charcoalDeep, borderRadius: 18, borderBottomRightRadius: 4, padding: 14, maxWidth: '78%' },
+  bubble: { backgroundColor: Colors.blackDeep, borderRadius: 18, borderBottomRightRadius: 4, padding: 14, maxWidth: '78%' },
   bubbleText: { color: Colors.textOnDark, fontSize: 15, lineHeight: 22 },
   bubbleTime: { color: Colors.textMuted, fontSize: 10, marginTop: 6, textAlign: 'right' },
   traceBlock: { backgroundColor: Colors.whiteSoft, borderRadius: 20, padding: 16, borderWidth: 1, borderColor: Colors.border, marginBottom: 20, ...Shadows.card },
   traceHeader: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 16 },
-  kMark: { width: 32, height: 32, borderRadius: 16, backgroundColor: Colors.goldPrimary, alignItems: 'center', justifyContent: 'center' },
-  traceTitle: { color: Colors.charcoalLight, fontSize: 11, fontWeight: '700', letterSpacing: 1, flex: 1 },
+  kMark: { width: 32, height: 32, borderRadius: 16, backgroundColor: Colors.greenPrimary, alignItems: 'center', justifyContent: 'center' },
+  traceTitle: { color: Colors.blackLight, fontSize: 11, fontWeight: '700', letterSpacing: 1, flex: 1 },
   stepRow: { flexDirection: 'row', minHeight: 48, marginBottom: 4 },
   stepLeft: { width: 32, alignItems: 'center' },
   doneCircle: { width: 20, height: 20, borderRadius: 10, backgroundColor: Colors.successGreen, alignItems: 'center', justifyContent: 'center' },
   connector: { width: 2, flex: 1, backgroundColor: Colors.border, marginTop: 4 },
-  stepLabel: { color: Colors.charcoalLight, fontSize: 13, fontWeight: '500' },
-  stepLabelDone: { color: Colors.charcoalDeep, fontWeight: '600' },
-  confirmCard: { backgroundColor: Colors.brownMatte, borderRadius: 20, padding: 20, ...Shadows.cardHeavy },
+  stepLabel: { color: Colors.blackLight, fontSize: 13, fontWeight: '500' },
+  stepLabelDone: { color: Colors.blackDeep, fontWeight: '600' },
+  confirmCard: { backgroundColor: Colors.grayMatte, borderRadius: 20, padding: 20, ...Shadows.cardHeavy },
   confirmTitle: { color: Colors.textOnDark, fontSize: 17, fontWeight: '800', marginBottom: 14 },
-  confirmDivider: { height: 1, backgroundColor: `${Colors.goldPrimary}50`, marginVertical: 12 },
-  workerAvatar: { width: 48, height: 48, borderRadius: 24, backgroundColor: `${Colors.goldPrimary}25`, alignItems: 'center', justifyContent: 'center' },
+  confirmDivider: { height: 1, backgroundColor: `${Colors.greenPrimary}50`, marginVertical: 12 },
+  workerAvatar: { width: 48, height: 48, borderRadius: 24, backgroundColor: `${Colors.greenPrimary}25`, alignItems: 'center', justifyContent: 'center' },
   workerName: { color: Colors.textOnDark, fontSize: 16, fontWeight: '700' },
-  workerRating: { color: Colors.goldLight, fontSize: 12, marginTop: 2 },
+  workerRating: { color: Colors.greenLight, fontSize: 12, marginTop: 2 },
   confirmRow: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingVertical: 5 },
   confirmRowText: { color: Colors.textOnDark, fontSize: 14, opacity: 0.9 },
-  ctaPrimary: { marginTop: 16, backgroundColor: Colors.goldPrimary, borderRadius: 14, paddingVertical: 15, alignItems: 'center', ...Shadows.goldFloat },
-  ctaPrimaryText: { color: Colors.charcoalDeep, fontSize: 15, fontWeight: '800' },
+  ctaPrimary: { marginTop: 16, backgroundColor: Colors.greenPrimary, borderRadius: 14, paddingVertical: 15, alignItems: 'center', ...Shadows.greenFloat },
+  ctaPrimaryText: { color: Colors.blackDeep, fontSize: 15, fontWeight: '800' },
   ctaGhost: { marginTop: 10, alignItems: 'center', paddingVertical: 10 },
-  ctaGhostText: { color: Colors.goldLight, fontSize: 14, fontWeight: '600' },
+  ctaGhostText: { color: Colors.greenLight, fontSize: 14, fontWeight: '600' },
 });

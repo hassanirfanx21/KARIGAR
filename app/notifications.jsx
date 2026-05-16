@@ -35,8 +35,8 @@ const mockNotifications = [
 const NotificationIcon = ({ type }) => {
   const config = {
     booking: { icon: Check, bg: COLORS.success },
-    reminder: { icon: Bell, bg: COLORS.goldPrimary },
-    rating: { icon: Star, bg: COLORS.brownMatte },
+    reminder: { icon: Bell, bg: COLORS.greenPrimary },
+    rating: { icon: Star, bg: COLORS.grayMatte },
   };
 
   const Icon = config[type].icon;
@@ -119,7 +119,7 @@ const AnimatedItem = ({
                   width: 8,
                   height: 8,
                   borderRadius: 4,
-                  backgroundColor: COLORS.goldPrimary,
+                  backgroundColor: COLORS.greenPrimary,
                   marginTop: 6,
                 }}
               />

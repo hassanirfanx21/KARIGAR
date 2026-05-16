@@ -121,8 +121,8 @@ export default function WorkerProfileScreen() {
                 <Text style={styles.listLabel}>Notifications</Text>
               </View>
               <Switch value={notificationsOn} onValueChange={setNotificationsOn}
-                trackColor={{ false: Colors.darkBorder, true: Colors.goldPrimary }}
-                thumbColor={notificationsOn ? Colors.charcoalDeep : Colors.textMuted} />
+                trackColor={{ false: Colors.darkBorder, true: Colors.greenPrimary }}
+                thumbColor={notificationsOn ? Colors.blackDeep : Colors.textMuted} />
             </View>
             <View style={styles.rowDivider} />
             <TouchableOpacity style={styles.listRow}>
@@ -175,9 +175,9 @@ const styles = StyleSheet.create({
   settingsBtn: { width: 38, height: 38, borderRadius: 19, backgroundColor: Colors.darkCard, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: Colors.darkBorder },
   scrollContent: { paddingBottom: 40 },
   profileHero: { backgroundColor: Colors.darkCard, marginHorizontal: 16, borderRadius: 24, padding: 24, alignItems: 'center', marginBottom: 20, borderWidth: 1, borderColor: Colors.darkBorder, overflow: 'hidden', ...Shadows.cardHeavy },
-  heroDecor: { position: 'absolute', top: -30, right: -30, width: 180, height: 180, borderRadius: 90, backgroundColor: `${Colors.goldPrimary}08` },
-  avatarRing: { width: 96, height: 96, borderRadius: 48, borderWidth: 2.5, borderColor: Colors.goldPrimary, alignItems: 'center', justifyContent: 'center', marginBottom: 14 },
-  heroAvatar: { width: 84, height: 84, borderRadius: 42, backgroundColor: Colors.brownMatte, alignItems: 'center', justifyContent: 'center' },
+  heroDecor: { position: 'absolute', top: -30, right: -30, width: 180, height: 180, borderRadius: 90, backgroundColor: `${Colors.greenPrimary}08` },
+  avatarRing: { width: 96, height: 96, borderRadius: 48, borderWidth: 2.5, borderColor: Colors.greenPrimary, alignItems: 'center', justifyContent: 'center', marginBottom: 14 },
+  heroAvatar: { width: 84, height: 84, borderRadius: 42, backgroundColor: Colors.grayMatte, alignItems: 'center', justifyContent: 'center' },
   heroAvatarText: { color: Colors.textOnDark, fontSize: 28, fontWeight: '700' },
   heroName: { color: Colors.textOnDark, fontSize: 20, fontWeight: '800', marginBottom: 4 },
   heroPhone: { color: Colors.textMuted, fontSize: 13, marginBottom: 10 },
@@ -185,23 +185,23 @@ const styles = StyleSheet.create({
   verifiedText: { color: Colors.successGreen, fontSize: 11, fontWeight: '700' },
   statsRow: { flexDirection: 'row', width: '100%', marginBottom: 20 },
   statItem: { flex: 1, alignItems: 'center' },
-  statValue: { color: Colors.goldPrimary, fontSize: 22, fontWeight: '800' },
+  statValue: { color: Colors.greenPrimary, fontSize: 22, fontWeight: '800' },
   statLabel: { color: Colors.textMuted, fontSize: 11, marginTop: 2 },
   statDivider: { width: 1, backgroundColor: Colors.darkBorder },
-  editBtn: { backgroundColor: Colors.goldPrimary, paddingHorizontal: 28, paddingVertical: 12, borderRadius: 14, ...Shadows.goldFloat },
-  editBtnText: { color: Colors.charcoalDeep, fontSize: 14, fontWeight: '800' },
+  editBtn: { backgroundColor: Colors.greenPrimary, paddingHorizontal: 28, paddingVertical: 12, borderRadius: 14, ...Shadows.greenFloat },
+  editBtnText: { color: Colors.blackDeep, fontSize: 14, fontWeight: '800' },
   sectionWrap: { paddingHorizontal: 16, marginBottom: 14 },
-  sectionLabel: { color: Colors.goldPrimary, fontSize: 10, fontWeight: '800', letterSpacing: 1.5, marginBottom: 8 },
+  sectionLabel: { color: Colors.greenPrimary, fontSize: 10, fontWeight: '800', letterSpacing: 1.5, marginBottom: 8 },
   sectionCard: { backgroundColor: Colors.darkCard, borderRadius: 18, borderWidth: 1, borderColor: Colors.darkBorder, overflow: 'hidden' },
   servicesGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, padding: 16 },
-  serviceTag: { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: `${Colors.goldPrimary}15`, paddingHorizontal: 14, paddingVertical: 8, borderRadius: Radius.full },
-  serviceTagText: { color: Colors.goldPrimary, fontSize: 13, fontWeight: '700' },
+  serviceTag: { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: `${Colors.greenPrimary}15`, paddingHorizontal: 14, paddingVertical: 8, borderRadius: Radius.full },
+  serviceTagText: { color: Colors.greenPrimary, fontSize: 13, fontWeight: '700' },
   listRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingVertical: 15 },
   listRowLeft: { flexDirection: 'row', alignItems: 'center', gap: 12, flex: 1 },
-  listIconWrap: { width: 36, height: 36, borderRadius: 10, backgroundColor: `${Colors.goldPrimary}15`, alignItems: 'center', justifyContent: 'center' },
+  listIconWrap: { width: 36, height: 36, borderRadius: 10, backgroundColor: `${Colors.greenPrimary}15`, alignItems: 'center', justifyContent: 'center' },
   listLabel: { color: Colors.textOnDark, fontSize: 14, fontWeight: '600' },
   listValue: { color: Colors.textMuted, fontSize: 12 },
-  chevron: { color: Colors.charcoalLight, fontSize: 20, fontWeight: '300' },
+  chevron: { color: Colors.blackLight, fontSize: 20, fontWeight: '300' },
   rowDivider: { height: 1, backgroundColor: Colors.darkBorder, marginHorizontal: 16 },
   versionText: { color: Colors.textMuted, fontSize: 11, textAlign: 'center', marginTop: 8 },
 });
