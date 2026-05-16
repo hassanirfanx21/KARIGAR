@@ -387,6 +387,20 @@ function buildClarification(partial, language) {
 // ─── Main Entry Point ───────────────────────────────────────────────────────
 
 /**
+ * Retry helper for transient failures.
+ */
+async function callGeminiWithRetry(prompt, message, options, retries = 2) {
+  for (let i = 0; i <= retries; i++) {
+    try {
+      return await callGemini(prompt, message, options);
+    } catch (err) {
+      if (i === retries) throw err;
+      await new Promise(resolve => setTimeout(resolve, 1000 * Math.pow(2, i)));
+    }
+  }
+}
+
+/**
  * Parse a raw user message into a structured service request.
  * This is the function the Orchestrator calls.
  *
@@ -397,33 +411,23 @@ function buildClarification(partial, language) {
 async function parseIntent(message, language = 'auto') {
   const startTime = Date.now();
 
-  // ── Step 1: Call Gemini to extract raw fields ──
+  // ── Step 1: Attempt extraction (with fallback for service_raw) ──
   console.log('[Intent Agent] Calling Gemini to extract intent...');
 
-  let extraction;
+  let extraction = { service_raw: message, location_raw: null };
   try {
-    const { parsed, raw } = await callGemini(SYSTEM_PROMPT, message, {
-      temperature: 0.2,   // Low temp for consistent extraction
+    const { parsed } = await callGeminiWithRetry(SYSTEM_PROMPT, message, {
+      temperature: 0.2,
       maxTokens: 1024,
     });
-
-    if (!parsed) {
-      console.error('[Intent Agent] Gemini returned non-JSON:', raw);
-      // Return clarification if Gemini fails completely
-      return {
-        ...buildClarification({}, language !== 'auto' ? language : 'english'),
-        agent: 'intent',
-        duration_ms: Date.now() - startTime,
-      };
-    }
-
-    extraction = parsed;
+    if (parsed) extraction = parsed;
   } catch (err) {
-    console.error('[Intent Agent] Gemini API error:', err.message);
-    throw new Error(`Intent parsing failed: ${err.message}`);
+    const isQuota = err.message.includes('429')
+      || err.message.toLowerCase().includes('quota')
+      || err.message.includes('Too Many Requests');
+    if (isQuota) throw err; // let runIntentAgent catch this and use keyword fallback
+    console.warn('[Intent Agent] Gemini failed, continuing with keyword extraction:', err.message);
   }
-
-  console.log('[Intent Agent] Gemini extraction:', JSON.stringify(extraction, null, 2));
 
   // ── Step 2: Validate category (hybrid approach) ──
   const serviceCategory = validateCategory(
@@ -439,7 +443,6 @@ async function parseIntent(message, language = 'auto') {
   // ── Step 4: Resolve date/time ──
   const dateTime = resolveDateTime(extraction.time_raw);
 
-  // Also check urgency_raw from Gemini as a fallback
   let urgency = dateTime?.urgency || 'normal';
   if (extraction.urgency_raw === 'urgent' && urgency === 'normal') {
     urgency = 'same_day';
@@ -462,14 +465,13 @@ async function parseIntent(message, language = 'auto') {
     budget_hint: extraction.budget_hint || null,
     language_detected: detectedLanguage,
     additional_notes: extraction.additional_notes || null,
-    confidence: 0, // computed below
+    confidence: 0,
   };
 
   // ── Step 6: Compute confidence ──
   result.confidence = computeConfidence(result);
 
   // ── Step 7: Check if we need clarification ──
-  // Minimum requirements: service_category AND location
   const needsClarification = !result.service_category || !result.location;
 
   if (needsClarification) {
@@ -496,11 +498,107 @@ async function parseIntent(message, language = 'auto') {
   };
 }
 
+// ─── Keyword-only fallback (no Gemini needed) ─────────────────────────────
+// Used when Gemini quota is exhausted. Keeps the pipeline running for demo.
+
+function parseIntentKeywordOnly(message, language = 'roman_urdu') {
+  const lower = message.toLowerCase();
+
+  // Category
+  let service_category = null;
+  let service_display = 'Service';
+  const displayMap = {
+    hvac: 'AC Technician', plumbing: 'Plumber', electrical: 'Electrician',
+    cleaning: 'Cleaning Service', carpentry: 'Carpenter',
+    painting: 'Painter', tutoring: 'Tutor',
+  };
+  for (const [cat, keywords] of Object.entries(CATEGORY_KEYWORDS)) {
+    if (keywords.some(kw => lower.includes(kw))) {
+      service_category = cat;
+      service_display = displayMap[cat] || cat;
+      break;
+    }
+  }
+
+  // Location — scan raw message for sector codes like G-13, F-8, I-10
+  const { geocode } = require('../utils/geocoder');
+  let location_raw = null;
+  let location = null;
+  const sectorMatch = lower.match(/\b([a-z]-?\d{1,2})\b/);
+  if (sectorMatch) {
+    location = geocode(sectorMatch[1]);
+    if (location) location_raw = sectorMatch[1].toUpperCase();
+  }
+  // Also try common named areas
+  const namedAreas = ['dha', 'bahria', 'gulberg', 'johar', 'model town', 'clifton'];
+  if (!location_raw) {
+    for (const area of namedAreas) {
+      if (lower.includes(area)) {
+        location = geocode(area);
+        if (location) { location_raw = area; break; }
+      }
+    }
+  }
+
+  // Date/time
+  const sortedKeys = Object.keys(DAY_KEYWORDS).sort((a, b) => b.length - a.length);
+  const matchedKey = sortedKeys.find(kw => lower.includes(kw)) || null;
+  const dateTime = resolveDateTime(matchedKey);
+  const tomorrow = new Date();
+  tomorrow.setDate(tomorrow.getDate() + 1);
+
+  const result = {
+    service_category,
+    service_display,
+    location_raw,
+    location,
+    date: dateTime?.date || tomorrow.toISOString().split('T')[0],
+    time_slot: dateTime?.time_slot || { start: '09:00', end: '17:00', label: 'Flexible' },
+    urgency: dateTime?.urgency || 'next_day',
+    complexity: 'basic',
+    budget_hint: null,
+    language_detected: language,
+    additional_notes: null,
+  };
+
+  result.confidence = computeConfidence(result);
+
+  return {
+    status: (!result.service_category || !result.location) ? 'needs_clarification' : 'parsed',
+    agent: 'intent',
+    fallback_mode: 'keyword_only',
+    ...result,
+    duration_ms: 0,
+  };
+}
+
+// ─── runIntentAgent — Primary export used by orchestrator ───────────────────
+// Tries Gemini. On 429 / quota error, gracefully falls back to keyword-only.
+// Never throws — always returns a usable object.
+
+async function runIntentAgent(input) {
+  const { message, language = 'auto' } = input;
+  try {
+    return await parseIntent(message, language);
+  } catch (err) {
+    const isQuotaError = err.message.includes('429')
+      || err.message.toLowerCase().includes('quota')
+      || err.message.includes('Too Many Requests');
+    if (isQuotaError) {
+      console.warn('[INTENT_AGENT] Gemini quota hit — using keyword-only fallback');
+    } else {
+      console.warn('[INTENT_AGENT] Gemini error, falling back:', err.message);
+    }
+    return parseIntentKeywordOnly(message, language !== 'auto' ? language : 'roman_urdu');
+  }
+}
+
 // ─── Exports ────────────────────────────────────────────────────────────────
 
 module.exports = {
-  parseIntent,
-  // Exported for unit testing
+  runIntentAgent,           // Primary — used by orchestrator
+  parseIntent,              // Gemini call (throws on error)
+  parseIntentKeywordOnly,   // Fallback — no network needed
   resolveDateTime,
   validateCategory,
   computeConfidence,

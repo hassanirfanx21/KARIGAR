@@ -1,22 +1,23 @@
 import React, { useState } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useRouter } from 'expo-router';
+import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Colors, Shadows, Spacing, Radius } from '../../constants/theme';
 
 export default function BookingDetailScreen() {
   const router = useRouter();
+  const { bookingId, workerName, slot, location, confirmCode, pricing: pricingStr } = useLocalSearchParams();
+  const pricing = JSON.parse(pricingStr || '{}');
   const [agentExpanded, setAgentExpanded] = useState(false);
   const status = 'confirmed';
   const isConfirmed = status === 'confirmed';
 
   const detailRows = [
-    { icon: '📅', label: 'Tarikh', value: 'Jumarat, 13 September 2024' },
-    { icon: '⏰', label: 'Waqt', value: '10:00 AM' },
-    { icon: '📍', label: 'Jagah', value: 'G-13, Islamabad' },
+    { icon: '📅', label: 'Tarikh', value: slot || 'Jumarat, 13 September 2024' },
+    { icon: '📍', label: 'Jagah', value: location || 'G-13, Islamabad' },
     { icon: '🛠️', label: 'Service', value: 'AC Technician' },
-    { icon: '🔖', label: 'Booking ID', value: 'BK-20240913-0047', mono: true },
-    { icon: '🔑', label: 'Confirm Code', value: 'KRG-4751', gold: true },
+    { icon: '🔖', label: 'Booking ID', value: bookingId || 'BK-20240913-0047', mono: true },
+    { icon: '🔑', label: 'Confirm Code', value: confirmCode || 'KRG-4751', gold: true },
     { icon: '✅', label: 'Status', value: 'Confirmed', statusColor: Colors.successGreen },
   ];
 
@@ -39,7 +40,7 @@ export default function BookingDetailScreen() {
         {/* Hero */}
         <View style={styles.heroCard}>
           <View style={styles.heroAvatar}><Text style={{ fontSize: 36 }}>👷</Text></View>
-          <Text style={styles.heroName}>Ali AC Services</Text>
+          <Text style={styles.heroName}>{workerName || 'Ali AC Services'}</Text>
           <View style={styles.heroCatRow}>
             <View style={styles.catChip}><Text style={styles.catChipText}>AC Technician</Text></View>
             <Text style={styles.heroRating}>⭐ 4.8</Text>
@@ -63,6 +64,27 @@ export default function BookingDetailScreen() {
               {i < detailRows.length - 1 && <View style={styles.rowDivider} />}
             </View>
           ))}
+        </View>
+
+        {/* Pricing */}
+        <Text style={styles.sectionLabel}>QEEMAT KA HISAAB</Text>
+        <View style={styles.detailsCard}>
+          {pricing.breakdown ? pricing.breakdown.map((item, i) => {
+            const isTotal = i === pricing.breakdown.length - 1;
+            return (
+              <View key={item.label} style={[styles.pricingRow, isTotal && styles.pricingRowTotal]}>
+                <Text style={[styles.pricingLabel, item.bold && styles.pricingLabelBold, isTotal && styles.pricingTotalText]}>{item.label}</Text>
+                <Text style={[styles.pricingValue, item.bold && styles.pricingValueBold, isTotal && styles.pricingTotalText]}>
+                  {item.amount ? `PKR ${item.amount}` : item.multiplier}
+                </Text>
+              </View>
+            );
+          }) : (
+            <View style={styles.pricingRow}>
+              <Text style={styles.pricingLabel}>Estimated Price</Text>
+              <Text style={styles.pricingValue}>PKR — (calculating)</Text>
+            </View>
+          )}
         </View>
 
         {/* Agent Reasoning */}
@@ -102,7 +124,7 @@ export default function BookingDetailScreen() {
             ))}
           </View>
           <View style={styles.mapPin}><Text style={{ fontSize: 28 }}>📍</Text></View>
-          <View style={styles.mapLabel}><Text style={styles.mapLabelText}>📍 G-13, Islamabad</Text></View>
+          <View style={styles.mapLabel}><Text style={styles.mapLabelText}>📍 {location || 'G-13, Islamabad'}</Text></View>
         </View>
         <View style={{ height: 100 }} />
       </ScrollView>
@@ -132,7 +154,7 @@ const styles = StyleSheet.create({
   scrollContent: { padding: 16 },
   heroCard: { backgroundColor: Colors.brownMatte, borderRadius: 22, padding: 24, alignItems: 'center', marginBottom: 20, ...Shadows.cardHeavy },
   heroAvatar: { width: 88, height: 88, borderRadius: 44, backgroundColor: `${Colors.goldPrimary}30`, alignItems: 'center', justifyContent: 'center', borderWidth: 3, borderColor: Colors.goldPrimary, marginBottom: 14 },
-  heroName: { color: Colors.textOnDark, fontSize: 20, fontWeight: '800', marginBottom: 8 },
+  heroName: { color: Colors.textOnDark, fontSize: 20, fontWeight: '800', marginBottom: 8, textAlign: 'center' },
   heroCatRow: { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 12 },
   catChip: { backgroundColor: `${Colors.goldPrimary}30`, paddingHorizontal: 12, paddingVertical: 4, borderRadius: Radius.full },
   catChipText: { color: Colors.goldLight, fontSize: 12, fontWeight: '700' },
@@ -149,6 +171,16 @@ const styles = StyleSheet.create({
   detailMono: { fontFamily: 'monospace', fontSize: 12 },
   detailGold: { color: Colors.goldPrimary, fontWeight: '800', fontSize: 16 },
   rowDivider: { height: 1, backgroundColor: Colors.border, marginHorizontal: 16 },
+  
+  // PRICING STYLES
+  pricingRow: { flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: 16, paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: Colors.border },
+  pricingRowTotal: { backgroundColor: `${Colors.goldPrimary}20`, borderBottomWidth: 0 },
+  pricingLabel: { color: Colors.textMuted, fontSize: 14 },
+  pricingLabelBold: { color: Colors.goldPrimary, fontWeight: '800', fontSize: 15 },
+  pricingValue: { color: Colors.charcoalDeep, fontSize: 14, fontWeight: '600', textAlign: 'right' },
+  pricingValueBold: { color: Colors.goldPrimary, fontWeight: '800', fontSize: 15 },
+  pricingTotalText: { color: Colors.charcoalDeep, fontWeight: '800', fontSize: 16 },
+  
   agentCard: { backgroundColor: Colors.whitePure, borderRadius: 18, borderWidth: 1, borderColor: Colors.border, padding: 16, marginBottom: 20, ...Shadows.card },
   agentHeader: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   kMark: { width: 28, height: 28, borderRadius: 14, backgroundColor: Colors.goldPrimary, alignItems: 'center', justifyContent: 'center' },

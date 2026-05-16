@@ -11,9 +11,9 @@
 //   - Auto-expand discovery when zero workers found (relax filters, widen radius)
 //   - Side-by-side baseline comparison
 
-const { parseIntent } = require('./intentAgent');
+const { parseIntent, runIntentAgent } = require('./intentAgent');
 const { runDiscoveryAgent } = require('./discoveryAgent');
-const { rankCandidates } = require('./rankingAgent');
+const { rankCandidates, runRankingAgent } = require('./rankingAgent');
 const { runPricingAgent } = require('./pricingAgent');
 const { runBookingAgent } = require('./bookingAgent');
 const { runNotificationAgent } = require('./notificationAgent');
@@ -22,6 +22,7 @@ const { resolveDispute } = require('./disputeAgent');
 const { runBaseline } = require('../utils/baseline');
 const { db } = require('../config/firebase');
 const { haversine } = require('../utils/distance');
+const { callGeminiText } = require('../utils/gemini');
 
 // ─── Trace Helper ───────────────────────────────────────────────────────────
 
@@ -456,9 +457,158 @@ async function processComparison(message, language = 'auto') {
   };
 }
 
+// ─── End-to-End Orchestrator (Prompt 3 compliance) ──────────────────────────
+/**
+ * Fully chains the 8-agent pipeline in a single end-to-end shot.
+ * 
+ * @param {string} message 
+ * @param {string} language 
+ * @param {string} user_id 
+ * @returns {Promise<object>}
+ */
+async function orchestrate(message, language = 'auto', user_id = 'anonymous') {
+  const startTime = Date.now();
+  const trace = [];
+
+  const addTrace = (name, summary, start) => {
+    trace.push({
+      agent_name: name,
+      status: 'done',
+      output_summary: summary,
+      duration_ms: Date.now() - start
+    });
+  };
+
+  try {
+    // 1. Intent Agent
+    let tStart = Date.now();
+    const intent = await runIntentAgent({ message, language });
+    addTrace('intentAgent', { service: intent.service_category, location: intent.location?.label }, tStart);
+    
+    if (intent.status === 'needs_clarification') {
+      return { success: false, error: 'needs_clarification', message: intent.message, trace, total_duration_ms: Date.now() - startTime };
+    }
+
+    // 2. Discovery Agent
+    tStart = Date.now();
+    let discovery = await runDiscoveryAgent({
+      service_category: intent.service_category,
+      lat: intent.location?.lat,
+      lng: intent.location?.lng,
+      date: intent.date,
+      time_slot: intent.time_slot
+    });
+    addTrace('discoveryAgent', { candidates_found: discovery.total_found }, tStart);
+
+    // 3. Check Candidates
+    if (discovery.total_found === 0) {
+      return { 
+        success: false, 
+        error: 'no_providers', 
+        message: 'Koi karigar nahi mila is area mein.', 
+        trace,
+        total_duration_ms: Date.now() - startTime
+      };
+    }
+
+    // 4. Ranking Agent
+    tStart = Date.now();
+    const ranking = await runRankingAgent({ candidates: discovery.candidates, user_request: intent });
+    const topWorker = ranking.ranked[0];
+    addTrace('rankingAgent', { top_worker: topWorker?.name, score: topWorker?.total_score }, tStart);
+
+    // 5. Pricing Agent
+    tStart = Date.now();
+    const pricing = runPricingAgent({
+      worker_base_price: topWorker.base_price || topWorker._raw_worker?.base_price || 1500,
+      distance_km: topWorker.distance_km,
+      urgency: intent.urgency,
+      complexity: intent.complexity,
+      is_returning_user: false
+    });
+    addTrace('pricingAgent', { final_price: pricing.final_price }, tStart);
+
+    // 6. Booking Agent
+    tStart = Date.now();
+    const booking = await runBookingAgent({
+      user_id,
+      worker_id: topWorker.worker_id || topWorker.id,
+      service: { category: intent.service_category, display_name: intent.service_display },
+      slot: { date: intent.date, start: intent.time_slot?.start, end: intent.time_slot?.end },
+      location: intent.location,
+      pricing,
+      agent_trace: trace
+    });
+    addTrace('bookingAgent', { booking_id: booking.booking_id }, tStart);
+
+    // 7. Notification Agent
+    tStart = Date.now();
+    const notifInput = {
+      booking_id: booking.booking_id,
+      confirmation_code: booking.confirmation_code,
+      user_phone: 'N/A',
+      worker_phone: 'N/A',
+      worker_name: topWorker.name,
+      service_display: intent.service_display,
+      slot: { date: intent.date, start: intent.time_slot?.start, end: intent.time_slot?.end },
+      location: intent.location,
+      final_price: pricing.final_price,
+      language: intent.language_detected
+    };
+    const notifications = runNotificationAgent(notifInput);
+    addTrace('notificationAgent', { generated: notifications.notifications.length }, tStart);
+
+    // 8. Follow-up Agent
+    tStart = Date.now();
+    const followups = runFollowupAgent({
+      booking_id: booking.booking_id,
+      slot: { date: intent.date, start: intent.time_slot?.start, end: intent.time_slot?.end },
+      created_at: booking.created_at
+    });
+    addTrace('followupAgent', { generated: followups.followups.length }, tStart);
+
+    // 9. Master Reasoning via Gemini
+    let orchestrator_reasoning = '';
+    const summaryMsg = \`We received request: "\${message}". Intent extracted: \${intent.service_category} at \${intent.location?.label}. Found \${discovery.total_found} candidates. Selected \${topWorker.name} because they scored \${topWorker.total_score}. Price is \${pricing.final_price}. Booking \${booking.booking_id} created.\`;
+    
+    try {
+      orchestrator_reasoning = await callGeminiText(
+        'You are the Master Orchestrator. Write a friendly 2-sentence summary of the decisions made in the language of the request.',
+        summaryMsg,
+        { temperature: 0.3, maxTokens: 100 }
+      );
+    } catch (e) {
+      orchestrator_reasoning = \`System fallback reasoning: Selected \${topWorker.name} for \${intent.service_category} at \${pricing.final_price} PKR based on highest ranking score (\${topWorker.total_score}).\`;
+    }
+
+    return {
+      success: true,
+      booking_id: booking.booking_id,
+      confirmation_code: booking.confirmation_code,
+      worker: topWorker,
+      ranked: ranking.ranked,
+      pricing,
+      trace,
+      orchestrator_reasoning,
+      total_duration_ms: Date.now() - startTime,
+      notifications: notifications.notifications,
+      followups: followups.followups
+    };
+
+  } catch (err) {
+    return {
+      success: false,
+      error: err.message,
+      trace,
+      total_duration_ms: Date.now() - startTime
+    };
+  }
+}
+
 // ─── Exports ────────────────────────────────────────────────────────────────
 
 module.exports = {
+  orchestrate,
   processRequest,
   processBooking,
   processDispute,

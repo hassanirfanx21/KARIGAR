@@ -394,6 +394,7 @@ async function rankCandidates({ candidates, user_request }) {
 
 module.exports = {
   rankCandidates,
+  runRankingAgent: rankCandidates, // Alias for orchestrator
   // Exported for unit testing
   scoreDistance,
   scoreAvailability,

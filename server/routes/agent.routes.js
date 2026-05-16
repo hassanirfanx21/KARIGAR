@@ -7,11 +7,13 @@
 const express = require('express');
 const router = express.Router();
 const {
-  processRequest,
+  orchestrate,
   processBooking,
   processDispute,
   processComparison,
 } = require('../agents/orchestrator');
+const { runBaseline } = require('../utils/baseline');
+const { geocode } = require('../utils/geocoder');
 
 // ─── Main Agentic Pipeline ──────────────────────────────────────────────────
 // Step 1 of the two-step flow: returns ranked workers with prices.
@@ -23,10 +25,41 @@ router.post('/request', async (req, res) => {
       return res.status(400).json({ error: 'Message is required' });
     }
 
-    const result = await processRequest(message, language, user_id);
-    res.json({ success: true, ...result });
+    const result = await orchestrate(message, language || 'roman_urdu', user_id || 'anonymous');
+    // orchestrate already returns { success, ... }
+    res.json(result);
   } catch (err) {
     console.error('[Agent Route Error] /request:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ─── Baseline Comparison ────────────────────────────────────────────────────
+router.get('/baseline', async (req, res) => {
+  try {
+    let { message, lat, lng } = req.query;
+
+    if (!lat || !lng) {
+      const location = geocode(message || '');
+      if (location) {
+        lat = location.lat;
+        lng = location.lng;
+      } else {
+        // Fallback to Islamabad center if we can't detect a location
+        lat = 33.6844;
+        lng = 73.0479;
+      }
+    }
+
+    const result = await runBaseline({ 
+      keyword: message || '', 
+      lat: parseFloat(lat), 
+      lng: parseFloat(lng) 
+    });
+    
+    res.json(result);
+  } catch (err) {
+    console.error('[Agent Route Error] /baseline:', err);
     res.status(500).json({ error: err.message });
   }
 });

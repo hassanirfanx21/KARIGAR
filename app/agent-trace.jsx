@@ -8,7 +8,7 @@ import {
   Animated,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useRouter } from "expo-router";
+import { useRouter, useLocalSearchParams } from "expo-router";
 import {
   ArrowLeft,
   Check,
@@ -433,6 +433,9 @@ const SummaryCard: React.FC = () => {
 
 export default function AgentTraceScreen() {
   const router = useRouter();
+  const params = useLocalSearchParams();
+  const bookingId = params.bookingId || 'BK-20240913-0047';
+  const [sessId] = useState('sess_' + Math.random().toString(36).substring(2, 8));
   const [statuses, setStatuses] = useState(
     AGENTS.map(() => "pending"),
   );
@@ -493,7 +496,7 @@ export default function AgentTraceScreen() {
         </TouchableOpacity>
         <Text style={styles.headerTitle}>KARIGAR Agent Trace</Text>
         <View style={styles.bookingPill}>
-          <Text style={styles.bookingPillText}>BK-20240913-0047</Text>
+          <Text style={styles.bookingPillText}>{bookingId}</Text>
         </View>
       </View>
 
@@ -504,7 +507,7 @@ export default function AgentTraceScreen() {
         {/*      Session Info Bar      */}
         <View style={styles.sessionBar}>
           <View style={styles.sessionItem}>
-            <Text style={styles.sessionMono}>sess_abc123</Text>
+            <Text style={styles.sessionMono}>{sessId}</Text>
           </View>
           <View style={styles.sessionSep} />
           <View style={styles.sessionItem}>

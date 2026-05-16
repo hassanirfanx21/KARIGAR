@@ -25,10 +25,27 @@ export default function AgentWorkingScreen() {
   const router = useRouter();
   const params = useLocalSearchParams();
   const userMessage = params.message || 'AC Technician chahiye kal subah G-13 mein';
+  
   const [statuses, setStatuses] = useState(STEPS.map(() => 'idle'));
   const [allDone, setAllDone] = useState(false);
+  const [agentResult, setAgentResult] = useState(null);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
+    // 1. Trigger actual backend call
+    fetch('http://YOUR_SERVER_IP:3000/api/agent/request', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message: userMessage, language: 'roman_urdu' })
+    })
+      .then(res => res.json())
+      .then(data => {
+        if (data.success) setAgentResult(data);
+        else setError(true);
+      })
+      .catch(() => setError(true));
+
+    // 2. Handle UI animations sequentially
     const timers = [];
     STEPS.forEach((step, i) => {
       timers.push(setTimeout(() => setStatuses(p => { const n=[...p]; n[i]='active'; return n; }), step.delay));
@@ -78,31 +95,55 @@ export default function AgentWorkingScreen() {
           })}
         </View>
 
+        {/* Error State */}
+        {allDone && error && (
+          <View style={styles.confirmCard}>
+            <Text style={[styles.confirmTitle, { color: Colors.errorRed }]}>❌ Kuch Masla Hua</Text>
+            <Text style={{ color: Colors.textOnDark, marginBottom: 15 }}>Hum aapka request process nahi kar sake. Dobara koshish karein.</Text>
+            <TouchableOpacity style={styles.ctaGhost} onPress={() => router.back()} activeOpacity={0.7}>
+              <Text style={styles.ctaGhostText}>Peechay Jayein</Text>
+            </TouchableOpacity>
+          </View>
+        )}
+
         {/* Confirm card */}
-        {allDone && (
+        {allDone && agentResult && !error && (
           <View style={styles.confirmCard}>
             <Text style={styles.confirmTitle}>✅ Booking Confirm Ho Gayi!</Text>
             <View style={styles.confirmDivider} />
             <View style={{ flexDirection: 'row', alignItems: 'center' }}>
               <View style={styles.workerAvatar}><Text style={{ fontSize: 22 }}>👷</Text></View>
               <View style={{ flex: 1, marginLeft: 12 }}>
-                <Text style={styles.workerName}>Ali AC Services</Text>
-                <Text style={styles.workerRating}>4.8 ★ Excellent</Text>
+                <Text style={styles.workerName}>{agentResult.worker?.name || 'Karigar'}</Text>
+                <Text style={styles.workerRating}>{agentResult.worker?.rating || 'New'} ★ Excellent</Text>
               </View>
             </View>
             <View style={styles.confirmDivider} />
             {[
-              { icon: '📅', text: 'Kal — Jumarat, 13 September' },
-              { icon: '⏰', text: '10:00 AM' },
-              { icon: '📍', text: 'G-13, Islamabad' },
-              { icon: '🛠️', text: 'AC Technician' },
+              { icon: '📅', text: \`Booking ID: \${agentResult.booking_id}\` },
+              { icon: '🔑', text: \`Code: \${agentResult.confirmation_code}\` },
+              { icon: '📍', text: agentResult?.worker?._raw_worker?.sector || 'Islamabad' },
+              { icon: '💰', text: \`PKR \${agentResult.pricing?.final_price || 0}\` },
             ].map(r => (
               <View key={r.text} style={styles.confirmRow}>
                 <Text style={{ fontSize: 16, width: 26 }}>{r.icon}</Text>
                 <Text style={styles.confirmRowText}>{r.text}</Text>
               </View>
             ))}
-            <TouchableOpacity style={styles.ctaPrimary} onPress={() => router.push('/(customer)/booking-detail')} activeOpacity={0.85}>
+            <TouchableOpacity 
+              style={styles.ctaPrimary} 
+              onPress={() => router.push({ 
+                pathname: '/(customer)/booking-detail', 
+                params: { 
+                  bookingId: agentResult?.booking_id, 
+                  workerName: agentResult?.worker?.name,
+                  slot: agentResult?.booking?.slot_date || 'Kal 10:00 AM',
+                  location: agentResult?.worker?._raw_worker?.sector || 'G-13, Islamabad',
+                  confirmCode: agentResult?.confirmation_code
+                } 
+              })} 
+              activeOpacity={0.85}
+            >
               <Text style={styles.ctaPrimaryText}>Booking Detail Dekhein →</Text>
             </TouchableOpacity>
             <TouchableOpacity style={styles.ctaGhost} onPress={() => router.back()} activeOpacity={0.7}>
