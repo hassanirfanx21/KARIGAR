@@ -484,7 +484,7 @@ async function orchestrate(message, language = 'auto', user_id = 'anonymous') {
     let tStart = Date.now();
     const intent = await runIntentAgent({ message, language });
     addTrace('intentAgent', { service: intent.service_category, location: intent.location?.label }, tStart);
-    
+
     if (intent.status === 'needs_clarification') {
       return { success: false, error: 'needs_clarification', message: intent.message, trace, total_duration_ms: Date.now() - startTime };
     }
@@ -502,10 +502,10 @@ async function orchestrate(message, language = 'auto', user_id = 'anonymous') {
 
     // 3. Check Candidates
     if (discovery.total_found === 0) {
-      return { 
-        success: false, 
-        error: 'no_providers', 
-        message: 'Koi karigar nahi mila is area mein.', 
+      return {
+        success: false,
+        error: 'no_providers',
+        message: 'Koi karigar nahi mila is area mein.',
         trace,
         total_duration_ms: Date.now() - startTime
       };
@@ -569,7 +569,7 @@ async function orchestrate(message, language = 'auto', user_id = 'anonymous') {
 
     // 9. Master Reasoning via Gemini
     let orchestrator_reasoning = '';
-    const summaryMsg = \`We received request: "\${message}". Intent extracted: \${intent.service_category} at \${intent.location?.label}. Found \${discovery.total_found} candidates. Selected \${topWorker.name} because they scored \${topWorker.total_score}. Price is \${pricing.final_price}. Booking \${booking.booking_id} created.\`;
+    const summaryMsg = `We received request: "${message}". Intent extracted: ${intent.service_category} at ${intent.location?.label}. Found ${discovery.total_found} candidates. Selected ${topWorker.name} because they scored ${topWorker.total_score}. Price is ${pricing.final_price}. Booking ${booking.booking_id} created.`;
     
     try {
       orchestrator_reasoning = await callGeminiText(
@@ -578,7 +578,7 @@ async function orchestrate(message, language = 'auto', user_id = 'anonymous') {
         { temperature: 0.3, maxTokens: 100 }
       );
     } catch (e) {
-      orchestrator_reasoning = \`System fallback reasoning: Selected \${topWorker.name} for \${intent.service_category} at \${pricing.final_price} PKR based on highest ranking score (\${topWorker.total_score}).\`;
+      orchestrator_reasoning = `System fallback reasoning: Selected ${topWorker.name} for ${intent.service_category} at ${pricing.final_price} PKR based on highest ranking score (${topWorker.total_score}).`;
     }
 
     return {

@@ -130,13 +130,13 @@ export default function AgentWorkingScreen() {
             </View>
             <View style={styles.confirmDivider} />
             {[
-              { icon: '📅', text: \`Booking ID: \${agentResult.booking_id}\` },
-              { icon: '🔑', text: \`Code: \${agentResult.confirmation_code}\` },
-              { icon: '📍', text: agentResult?.worker?._raw_worker?.sector || 'Islamabad' },
-              { icon: '💰', text: \`PKR \${agentResult.pricing?.final_price || 0}\` },
+              { icon: <Tag size={16} color={Colors.textMuted} />, text: `Booking ID: ${agentResult.booking_id}` },
+              { icon: <Key size={16} color={Colors.textMuted} />, text: `Code: ${agentResult.confirmation_code}` },
+              { icon: <MapPin size={16} color={Colors.textMuted} />, text: agentResult?.worker?._raw_worker?.sector || 'Islamabad' },
+              { icon: <Tag size={16} color={Colors.textMuted} />, text: `PKR ${agentResult.pricing?.final_price || 0}` },
             ].map(r => (
               <View key={r.text} style={styles.confirmRow}>
-                <Text style={{ fontSize: 16, width: 26 }}>{r.icon}</Text>
+                <View style={{ width: 26, alignItems: 'center' }}>{r.icon}</View>
                 <Text style={styles.confirmRowText}>{r.text}</Text>
               </View>
             ))}
@@ -149,7 +149,8 @@ export default function AgentWorkingScreen() {
                   workerName: agentResult?.worker?.name,
                   slot: agentResult?.booking?.slot_date || 'Kal 10:00 AM',
                   location: agentResult?.worker?._raw_worker?.sector || 'G-13, Islamabad',
-                  confirmCode: agentResult?.confirmation_code
+                  confirmCode: agentResult?.confirmation_code,
+                  pricing: JSON.stringify(agentResult?.pricing || {})
                 } 
               })} 
               activeOpacity={0.85}

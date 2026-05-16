@@ -4,19 +4,19 @@ import {
   StyleSheet, Dimensions, StatusBar, KeyboardAvoidingView, Platform
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Bell, MapPin } from 'lucide-react-native';
+import { Bell, MapPin, Snowflake, PenTool, Zap, Brush, PaintBucket, Hammer, User, Calendar } from 'lucide-react-native';
 import { useRouter } from 'expo-router';
 import { Colors, Shadows, Spacing, Radius } from '../../constants/theme';
 
 const { width: W } = Dimensions.get('window');
 
 const SERVICES = [
-  { id: 'ac', emoji: '❄️', label: 'AC Repair' },
-  { id: 'plumber', emoji: '🔧', label: 'Plumber' },
-  { id: 'electric', emoji: '⚡', label: 'Electrician' },
-  { id: 'clean', emoji: '🧹', label: 'Cleaning' },
-  { id: 'paint', emoji: '🎨', label: 'Painter' },
-  { id: 'carpenter', emoji: '🔨', label: 'Carpenter' },
+  { id: 'ac', icon: <Snowflake size={24} color={Colors.greenPrimary} />, label: 'AC Repair' },
+  { id: 'plumber', icon: <PenTool size={24} color={Colors.greenPrimary} />, label: 'Plumber' },
+  { id: 'electric', icon: <Zap size={24} color={Colors.greenPrimary} />, label: 'Electrician' },
+  { id: 'clean', icon: <Brush size={24} color={Colors.greenPrimary} />, label: 'Cleaning' },
+  { id: 'paint', icon: <PaintBucket size={24} color={Colors.greenPrimary} />, label: 'Painter' },
+  { id: 'carpenter', icon: <Hammer size={24} color={Colors.greenPrimary} />, label: 'Carpenter' },
 ];
 
 const ACTIVE_BOOKING = {
@@ -53,7 +53,7 @@ export default function CustomerHomeScreen() {
               <View style={styles.topRow}>
                 <View>
                   <Text style={styles.greeting}>Assalamualaikum,</Text>
-                  <Text style={styles.userName}>Ahmed Khan 👋</Text>
+                  <Text style={styles.userName}>Ahmed Khan</Text>
                 </View>
                 <TouchableOpacity style={styles.notifBtn} onPress={() => router.push('/notifications')}>
                   <Bell size={20} color={Colors.textOnDark} />
@@ -79,20 +79,17 @@ export default function CustomerHomeScreen() {
           <ScrollView horizontal showsHorizontalScrollIndicator={false}
             contentContainerStyle={styles.serviceRow}>
             {SERVICES.map(s => (
-              <TouchableOpacity key={s.id}
-                style={[styles.serviceChip, activeChip === s.id && styles.serviceChipActive]}
-                onPress={() => {
-                  setActiveChip(s.id);
-                  setMessage(`${s.label} chahiye`);
-                }}
-                activeOpacity={0.8}>
-                <View style={[styles.serviceEmoji, activeChip === s.id && styles.serviceEmojiActive]}>
-                  <Text style={{ fontSize: 22 }}>{s.emoji}</Text>
-                </View>
-                <Text style={[styles.serviceLabel, activeChip === s.id && styles.serviceLabelActive]}>
-                  {s.label}
-                </Text>
-              </TouchableOpacity>
+                <TouchableOpacity 
+                  key={s.id} 
+                  style={[styles.serviceCol, activeChip === s.id && styles.serviceColActive]}
+                  onPress={() => setActiveChip(s.id)}
+                  activeOpacity={0.7}
+                >
+                  <View style={[styles.serviceIconWrap, activeChip === s.id && styles.serviceIconWrapActive]}>
+                    {s.icon}
+                  </View>
+                  <Text style={[styles.serviceLabel, activeChip === s.id && styles.serviceLabelActive]}>{s.label}</Text>
+                </TouchableOpacity>
             ))}
           </ScrollView>
         </View>
@@ -102,23 +99,26 @@ export default function CustomerHomeScreen() {
           <Text style={styles.sectionLabel}>ACTIVE BOOKING</Text>
           <TouchableOpacity style={styles.bookingCard} activeOpacity={0.9}
             onPress={() => router.push('/(customer)/booking-detail')}>
-            <View style={styles.bookingTopRow}>
-              <View style={styles.bookingAvatar}>
-                <Text style={{ fontSize: 22 }}>👷</Text>
+              <View style={styles.activeRow}>
+                <View style={styles.activeAvatar}>
+                  <User size={24} color={Colors.greenPrimary} />
+                </View>
+                <View style={{ flex: 1, marginLeft: 12 }}>
+                  <Text style={styles.activeWorker}>{ACTIVE_BOOKING.worker}</Text>
+                  <Text style={styles.activeService}>{ACTIVE_BOOKING.service}</Text>
+                </View>
+                <View style={styles.statusBadge}>
+                  <Text style={styles.statusText}>Confirmed</Text>
+                </View>
               </View>
-              <View style={{ flex: 1, marginLeft: 12 }}>
-                <Text style={styles.bookingWorker}>{ACTIVE_BOOKING.worker}</Text>
-                <Text style={styles.bookingService}>{ACTIVE_BOOKING.service}</Text>
+              <View style={styles.activeDivider} />
+              <View style={styles.activeFooter}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                  <Calendar size={14} color={Colors.textMedium} />
+                  <Text style={styles.activeDate}>{ACTIVE_BOOKING.date}</Text>
+                </View>
+                <MapPin size={14} color={Colors.textMuted} />
               </View>
-              <View style={styles.statusBadge}>
-                <Text style={styles.statusText}>● Confirmed</Text>
-              </View>
-            </View>
-            <View style={styles.bookingDivider} />
-            <View style={styles.bookingBottomRow}>
-              <Text style={styles.bookingDate}>📅 {ACTIVE_BOOKING.date}</Text>
-              <Text style={styles.bookingCta}>Detail →</Text>
-            </View>
           </TouchableOpacity>
         </View>
 
