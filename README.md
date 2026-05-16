@@ -97,4 +97,16 @@ npx expo start
 * **Mobile Preview:** Download **Expo Go** on your device and scan the terminal QR code.
 
 ---
+
+## 📖 Complete Developer Documentation
+
+For an exhaustive guide on the system, including:
+- Detailed Architecture Flow
+- Database Collections & Table Formats (Firestore)
+- Complete API Reference & Data Formats
+- Backend-to-Frontend Connection Status
+
+Please read the newly created: [**KARIGAR_DEVELOPER_GUIDE.md**](./KARIGAR_DEVELOPER_GUIDE.md)
+
+---
 *Developed proudly for the **Google AI Seekho Hackathon 2026**.*
