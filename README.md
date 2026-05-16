@@ -110,3 +110,9 @@ Please read the newly created: [**KARIGAR_DEVELOPER_GUIDE.md**](./KARIGAR_DEVELO
 
 ---
 *Developed proudly for the **Google AI Seekho Hackathon 2026**.*
+
+## Current Implementation Notes
+
+- The customer-facing trace, nearby workers, notifications, and booking detail screens now consume live backend data instead of hardcoded demo lists.
+- Google Maps support is wired for travel-time calculations on the backend and optional Static Maps previews on the frontend when `EXPO_PUBLIC_GOOGLE_MAPS_API_KEY` is provided.
+- The ranking pipeline now includes travel time alongside distance, rating, availability, price fit, reliability, skill match, review recency, and cancellation rate.

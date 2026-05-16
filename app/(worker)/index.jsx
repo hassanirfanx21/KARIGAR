@@ -1,143 +1,143 @@
-import React, { useState, useRef, useCallback } from 'react';
-import {
-  View, Text, StyleSheet, ScrollView, TouchableOpacity, TouchableHighlight,
-  Animated, StatusBar, Platform, Dimensions,
-} from 'react-native';
+import React, { useEffect, useMemo, useState } from 'react';
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Switch, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
-import { Colors, Shadows, Spacing, Radius, FontSize } from '../../constants/theme';
-
-const { width: W } = Dimensions.get('window');
+import { Colors, Shadows, Spacing, Radius } from '../../constants/theme';
+import { API_URL } from '../../constants/config';
 
 const STATUS = {
-  confirmed:   { label: 'CONFIRMED',   color: Colors.confirmed,  bg: Colors.confirmedBg  },
+  confirmed: { label: 'CONFIRMED', color: Colors.confirmed, bg: Colors.confirmedBg },
   in_progress: { label: 'IN PROGRESS', color: Colors.greenPrimary, bg: Colors.inProgressBg },
-  completed:   { label: 'COMPLETED',   color: Colors.done,       bg: Colors.doneBg       },
-  pending:     { label: 'PENDING',     color: Colors.pendingOrange, bg: Colors.pendingBg  },
+  completed: { label: 'COMPLETED', color: Colors.done, bg: Colors.doneBg },
+  pending: { label: 'PENDING', color: Colors.pendingOrange, bg: Colors.pendingBg },
 };
 
-const BOOKING_ALERT = { id: '1', service: 'Plumbing Repair', date: 'Today', time: '05:00 PM', location: 'Johar Town, Block A', distance: '2.1 km aap se' };
-
-const TODAY_JOBS = [
-  { id: '1', timeStart: '10:00 AM', timeEnd: '12:00 PM', service: 'Electrician Repair', customer: 'Ali Hassan', location: 'House 42, Street 5, Gulberg', status: 'confirmed', price: 1500 },
-  { id: '2', timeStart: '02:00 PM', timeEnd: '04:00 PM', service: 'AC Service & Maintenance', customer: 'Sara Ahmed', location: 'DHA Phase 6, Block C', status: 'in_progress', price: 2500 },
-  { id: '3', timeStart: '05:30 PM', timeEnd: '07:00 PM', service: 'Plumbing Repair', customer: 'Usman Malik', location: 'Gulberg III, MM Alam Road', status: 'pending', price: 1200 },
-];
-
-function AvailabilityToggle({ isOn, onToggle }) {
-  const anim = useRef(new Animated.Value(isOn ? 1 : 0)).current;
-  const handlePress = useCallback(() => {
-    Animated.spring(anim, { toValue: isOn ? 0 : 1, useNativeDriver: false, tension: 70, friction: 9 }).start();
-    onToggle();
-  }, [isOn, onToggle, anim]);
-  const trackBg = anim.interpolate({ inputRange: [0, 1], outputRange: ['rgba(255,255,255,0.10)', Colors.greenPrimary] });
-  const thumbX = anim.interpolate({ inputRange: [0, 1], outputRange: [3, 30] });
-
-  return (
-    <TouchableOpacity onPress={handlePress} activeOpacity={0.9} style={styles.toggleRow}>
-      <View style={styles.toggleTextWrap}>
-        <Text style={[styles.toggleStatus, { color: isOn ? Colors.greenPrimary : 'rgba(240,237,232,0.45)' }]}>{isOn ? '● Online' : '○ Offline'}</Text>
-        <Text style={styles.toggleSub}>{isOn ? 'Bookings chal rahi hain' : 'Bookings band hain'}</Text>
-      </View>
-      <Animated.View style={[styles.toggleTrack, { backgroundColor: trackBg }]}>
-        <Animated.View style={[styles.toggleThumb, { transform: [{ translateX: thumbX }] }]} />
-      </Animated.View>
-    </TouchableOpacity>
-  );
-}
-
-function StatsRow({ rating, jobsDone, monthlyEarning }) {
-  return (
-    <View style={styles.statsRow}>
-      <View style={styles.statCell}><Text style={{ fontSize: 13 }}>⭐</Text><Text style={styles.statVal}>{rating.toFixed(1)}</Text><Text style={styles.statLbl}>Rating</Text></View>
-      <View style={styles.statDiv} />
-      <View style={styles.statCell}><Text style={styles.statVal}>{jobsDone}</Text><Text style={styles.statLbl}>Jobs Done</Text></View>
-      <View style={styles.statDiv} />
-      <View style={styles.statCell}><Text style={styles.statValSm}>PKR</Text><Text style={styles.statVal}>{monthlyEarning.toLocaleString()}</Text><Text style={styles.statLbl}>This Month</Text></View>
-    </View>
-  );
+function formatMoney(amount) {
+  return amount ? `PKR ${Number(amount).toLocaleString()}` : 'PKR --';
 }
 
 export default function WorkerDashboardScreen() {
   const router = useRouter();
   const [isOnline, setIsOnline] = useState(true);
-  const [hasAlert, setHasAlert] = useState(true);
+  const [bookings, setBookings] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function loadBookings() {
+      try {
+        const res = await fetch(`${API_URL}/api/bookings?limit=20`);
+        const data = await res.json();
+        if (data.success) {
+          setBookings(data.bookings || []);
+        }
+      } catch (err) {
+        console.warn('[WORKER DASHBOARD] load failed:', err.message);
+        setBookings([]);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    loadBookings();
+  }, []);
+
+  const liveAlert = useMemo(() => bookings.find((booking) => ['confirmed', 'pending', 'in_progress'].includes(booking.status)), [bookings]);
+  const stats = useMemo(() => {
+    const jobsDone = bookings.filter((booking) => booking.status === 'completed').length;
+    const monthlyEarning = bookings.reduce((sum, booking) => sum + Number(booking.pricing?.final_price || 0), 0);
+    return { jobsDone, monthlyEarning };
+  }, [bookings]);
 
   return (
     <View style={styles.root}>
-      <StatusBar barStyle="light-content" backgroundColor={Colors.blackDeep} />
       <ScrollView style={{ flex: 1 }} contentContainerStyle={{ flexGrow: 1 }} showsVerticalScrollIndicator={false}>
-        {/* Dark Header */}
         <View style={styles.header}>
           <SafeAreaView>
             <View style={styles.headerInner}>
               <View style={styles.headerTopRow}>
                 <View>
                   <Text style={styles.greeting}>Assalamualaikum,</Text>
-                  <Text style={styles.workerName}>Ahmed Khan</Text>
+                  <Text style={styles.workerName}>Worker</Text>
                 </View>
                 <TouchableOpacity style={styles.notifBtn} onPress={() => router.push('/notifications')}>
                   <Text style={{ fontSize: 18 }}>🔔</Text>
-                  <View style={styles.notifDot} />
                 </TouchableOpacity>
               </View>
-              <AvailabilityToggle isOn={isOnline} onToggle={() => setIsOnline(p => !p)} />
-              <StatsRow rating={4.8} jobsDone={47} monthlyEarning={12400} />
+              <View style={styles.toggleRow}>
+                <View style={styles.toggleTextWrap}>
+                  <Text style={[styles.toggleStatus, { color: isOnline ? Colors.greenPrimary : 'rgba(240,237,232,0.45)' }]}>{isOnline ? '● Online' : '○ Offline'}</Text>
+                  <Text style={styles.toggleSub}>{isOnline ? 'Bookings chal rahi hain' : 'Bookings band hain'}</Text>
+                </View>
+                <Switch value={isOnline} onValueChange={setIsOnline} trackColor={{ false: Colors.darkBorder, true: Colors.greenPrimary }} thumbColor={isOnline ? Colors.blackDeep : Colors.textMuted} />
+              </View>
+              <View style={styles.statsRow}>
+                <View style={styles.statCell}><Text style={styles.statVal}>{loading ? '…' : stats.jobsDone}</Text><Text style={styles.statLbl}>Jobs Done</Text></View>
+                <View style={styles.statDiv} />
+                <View style={styles.statCell}><Text style={styles.statValSm}>PKR</Text><Text style={styles.statVal}>{loading ? '…' : Number(stats.monthlyEarning).toLocaleString()}</Text><Text style={styles.statLbl}>This Month</Text></View>
+                <View style={styles.statDiv} />
+                <View style={styles.statCell}><Text style={styles.statVal}>{bookings.length ? '—' : '0.0'}</Text><Text style={styles.statLbl}>Rating</Text></View>
+              </View>
             </View>
           </SafeAreaView>
         </View>
 
-        {/* Body */}
         <View style={styles.body}>
-          {/* Booking Alert */}
-          {hasAlert && (
+          {loading ? (
+            <View style={styles.loadingCard}><ActivityIndicator color={Colors.greenPrimary} /><Text style={styles.loadingText}>Live bookings load ho rahi hain...</Text></View>
+          ) : liveAlert ? (
             <View style={styles.alertCard}>
               <View style={styles.alertTopRow}>
                 <View style={styles.alertIconBg}><Text style={{ fontSize: 18 }}>🔔</Text></View>
-                <Text style={styles.alertTitle}>Nai Booking!</Text>
+                <Text style={styles.alertTitle}>Live Booking</Text>
                 <View style={styles.alertLivePill}><Text style={styles.alertLiveText}>LIVE</Text></View>
               </View>
-              <Text style={styles.alertService}>{BOOKING_ALERT.service}</Text>
+              <Text style={styles.alertService}>{liveAlert.service_display || liveAlert.service_type || 'Service'}</Text>
               <View style={styles.alertDetails}>
-                <View style={styles.alertDetailRow}><Text style={{ fontSize: 13 }}>⏰</Text><Text style={styles.alertDetailText}>{BOOKING_ALERT.date}, {BOOKING_ALERT.time}</Text></View>
-                <View style={styles.alertDetailRow}><Text style={{ fontSize: 13 }}>📍</Text><Text style={styles.alertDetailText}>{BOOKING_ALERT.location}</Text></View>
+                <View style={styles.alertDetailRow}><Text style={{ fontSize: 13 }}>⏰</Text><Text style={styles.alertDetailText}>{liveAlert.slot_date || 'TBD'}, {liveAlert.slot_time?.start || '--'} - {liveAlert.slot_time?.end || '--'}</Text></View>
+                <View style={styles.alertDetailRow}><Text style={{ fontSize: 13 }}>📍</Text><Text style={styles.alertDetailText}>{liveAlert.location?.label || 'Location pending'}</Text></View>
               </View>
-              <View style={styles.alertDistRow}><View style={styles.distDot} /><Text style={styles.alertDistText}>{BOOKING_ALERT.distance}</Text></View>
+              <View style={styles.alertDistRow}><View style={styles.distDot} /><Text style={styles.alertDistText}>{formatMoney(liveAlert.pricing?.final_price)}</Text></View>
               <View style={styles.alertDivider} />
               <View style={styles.alertBtns}>
-                <TouchableHighlight style={styles.acceptBtn} onPress={() => setHasAlert(false)} underlayColor="rgba(0,0,0,0.06)">
-                  <Text style={styles.acceptBtnText}>✓ Qabool Karo</Text>
-                </TouchableHighlight>
-                <TouchableOpacity style={styles.declineBtn} onPress={() => setHasAlert(false)} activeOpacity={0.8}>
-                  <Text style={styles.declineBtnText}>✕ Mana Karo</Text>
+                <TouchableOpacity style={styles.acceptBtn} onPress={() => router.push({ pathname: '/(customer)/booking-detail', params: { bookingId: liveAlert.booking_ref || liveAlert.id } })} activeOpacity={0.85}>
+                  <Text style={styles.acceptBtnText}>Detail</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.declineBtn} onPress={() => router.push('/(worker)/schedule')} activeOpacity={0.8}>
+                  <Text style={styles.declineBtnText}>Schedule</Text>
                 </TouchableOpacity>
               </View>
             </View>
+          ) : (
+            <View style={styles.alertCard}>
+              <Text style={styles.alertTitle}>No live bookings right now</Text>
+              <Text style={styles.alertDetailText}>Backend data se booking aayegi to yahan appear hogi.</Text>
+            </View>
           )}
 
-          {/* Schedule */}
           <View style={styles.sectionHeader}>
-            <Text style={styles.sectionLabel}>AAJ KA SCHEDULE</Text>
+            <Text style={styles.sectionLabel}>TODAY / RECENT BOOKINGS</Text>
             <TouchableOpacity onPress={() => router.push('/(worker)/schedule')}><Text style={styles.viewAll}>View All ›</Text></TouchableOpacity>
           </View>
 
-          {TODAY_JOBS.map(job => {
-            const s = STATUS[job.status];
+          {bookings.length === 0 ? (
+            <View style={styles.emptyCard}><Text style={styles.emptyText}>No bookings available</Text></View>
+          ) : bookings.slice(0, 5).map((booking) => {
+            const status = STATUS[booking.status] || STATUS.pending;
             return (
-              <View key={job.id} style={styles.jobCard}>
-                <View style={[styles.jobAccent, { backgroundColor: job.status === 'completed' ? Colors.done : Colors.greenPrimary }]} />
+              <View key={booking.id || booking.booking_ref} style={styles.jobCard}>
+                <View style={[styles.jobAccent, { backgroundColor: status.color }]} />
                 <View style={styles.jobBody}>
                   <View style={styles.jobRow}>
-                    <Text style={styles.jobTime}>{job.timeStart} – {job.timeEnd}</Text>
-                    <View style={[styles.statusBadge, { backgroundColor: s.bg }]}><Text style={[styles.statusText, { color: s.color }]}>{s.label}</Text></View>
+                    <Text style={styles.jobTime}>{booking.slot_time?.start || '--'} – {booking.slot_time?.end || '--'}</Text>
+                    <View style={[styles.statusBadge, { backgroundColor: status.bg }]}><Text style={[styles.statusText, { color: status.color }]}>{status.label}</Text></View>
                   </View>
-                  <Text style={styles.jobService}>{job.service}</Text>
-                  <Text style={styles.jobCustomer}>{job.customer}</Text>
-                  <View style={styles.jobLocRow}><Text style={{ fontSize: 12 }}>📍</Text><Text style={styles.jobLocText}>{job.location}</Text></View>
+                  <Text style={styles.jobService}>{booking.service_display || booking.service_type || 'Service'}</Text>
+                  <Text style={styles.jobCustomer}>{booking.worker_id || 'Worker not assigned'}</Text>
+                  <View style={styles.jobLocRow}><Text style={{ fontSize: 12 }}>📍</Text><Text style={styles.jobLocText}>{booking.location?.label || 'Location pending'}</Text></View>
                   <View style={styles.jobDivider} />
                   <View style={styles.jobFooter}>
-                    <Text style={styles.jobPrice}>PKR {job.price.toLocaleString()}</Text>
-                    <TouchableOpacity style={styles.detailsBtn}><Text style={styles.detailsBtnText}>Details ›</Text></TouchableOpacity>
+                    <Text style={styles.jobPrice}>{formatMoney(booking.pricing?.final_price)}</Text>
+                    <TouchableOpacity style={styles.detailsBtn} onPress={() => router.push({ pathname: '/(customer)/booking-detail', params: { bookingId: booking.booking_ref || booking.id } })}><Text style={styles.detailsBtnText}>Details ›</Text></TouchableOpacity>
                   </View>
                 </View>
               </View>
@@ -153,18 +153,15 @@ export default function WorkerDashboardScreen() {
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: Colors.whiteSoft },
   header: { backgroundColor: Colors.blackDeep, borderBottomLeftRadius: Radius.header, borderBottomRightRadius: Radius.header, ...Shadows.darkHeader },
-  headerInner: { paddingHorizontal: Spacing.xxl, paddingTop: Platform.OS === 'android' ? (StatusBar.currentHeight ?? 24) + 12 : 20, paddingBottom: Spacing.xxl },
+  headerInner: { paddingHorizontal: Spacing.xxl, paddingTop: 20, paddingBottom: Spacing.xxl },
   headerTopRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 16 },
   greeting: { fontSize: 13, color: 'rgba(240,237,232,0.55)' },
   workerName: { fontSize: 28, color: Colors.textOnDark, fontWeight: '800', marginTop: 2 },
   notifBtn: { width: 42, height: 42, borderRadius: 14, backgroundColor: 'rgba(255,255,255,0.08)', alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: 'rgba(255,255,255,0.06)' },
-  notifDot: { position: 'absolute', top: 8, right: 8, width: 8, height: 8, borderRadius: 4, backgroundColor: Colors.greenPrimary },
   toggleRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: 'rgba(255,255,255,0.06)', borderRadius: Radius.md, borderWidth: 1, borderColor: 'rgba(255,255,255,0.07)', paddingHorizontal: Spacing.lg, paddingVertical: 14, marginBottom: Spacing.lg },
   toggleTextWrap: { flex: 1, marginRight: 12 },
   toggleStatus: { fontSize: 14, fontWeight: '700', marginBottom: 2 },
   toggleSub: { fontSize: 12, color: 'rgba(240,237,232,0.45)' },
-  toggleTrack: { width: 58, height: 30, borderRadius: 15, justifyContent: 'center' },
-  toggleThumb: { width: 24, height: 24, borderRadius: 12, backgroundColor: Colors.whitePure, elevation: 3 },
   statsRow: { flexDirection: 'row', backgroundColor: 'rgba(255,255,255,0.08)', borderRadius: Radius.md, borderWidth: 1, borderColor: 'rgba(255,255,255,0.06)', overflow: 'hidden' },
   statCell: { flex: 1, alignItems: 'center', paddingVertical: 14 },
   statVal: { fontSize: 16, color: Colors.textOnDark, fontWeight: '700' },
@@ -172,6 +169,8 @@ const styles = StyleSheet.create({
   statLbl: { fontSize: 10, color: 'rgba(240,237,232,0.45)', marginTop: 3, textAlign: 'center' },
   statDiv: { width: 0.5, backgroundColor: 'rgba(255,255,255,0.1)', marginVertical: 12 },
   body: { paddingHorizontal: Spacing.lg, paddingTop: Spacing.xl },
+  loadingCard: { backgroundColor: Colors.whitePure, borderRadius: Radius.xl, padding: 20, alignItems: 'center', marginBottom: Spacing.xxl, ...Shadows.card },
+  loadingText: { marginTop: 10, color: Colors.textMuted, fontSize: 12 },
   alertCard: { backgroundColor: Colors.greenPrimary, borderRadius: Radius.xl, padding: Spacing.xl, marginBottom: Spacing.xxl, ...Shadows.greenFloat },
   alertTopRow: { flexDirection: 'row', alignItems: 'center', marginBottom: Spacing.sm },
   alertIconBg: { width: 36, height: 36, borderRadius: 18, backgroundColor: 'rgba(26,24,20,0.12)', alignItems: 'center', justifyContent: 'center', marginRight: 10 },
@@ -210,4 +209,6 @@ const styles = StyleSheet.create({
   jobPrice: { fontSize: 16, fontWeight: '700', color: Colors.greenPrimary },
   detailsBtn: { borderWidth: 1.5, borderColor: Colors.borderLight, borderRadius: 8, paddingHorizontal: 12, paddingVertical: 7 },
   detailsBtnText: { fontSize: 12, fontWeight: '700', color: Colors.textDark },
+  emptyCard: { backgroundColor: Colors.whitePure, borderRadius: Radius.lg, padding: 20, alignItems: 'center', ...Shadows.card },
+  emptyText: { color: Colors.textMuted, fontSize: 13 },
 });

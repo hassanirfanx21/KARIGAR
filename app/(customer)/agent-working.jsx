@@ -148,6 +148,25 @@ export default function AgentWorkingScreen() {
                </Text>
             </View>
 
+            {/* Agent Trace Summary */}
+            <View style={styles.traceCard}>
+              <View style={styles.traceHeaderRow}>
+                <Text style={styles.traceTitle}>Agent Trace</Text>
+                <TouchableOpacity
+                  onPress={() => router.push({ pathname: '/agent-trace', params: { trace: JSON.stringify(agentResult.trace || []) } })}
+                >
+                  <Text style={styles.traceLink}>View Full →</Text>
+                </TouchableOpacity>
+              </View>
+              {(agentResult.trace || []).slice(0, 3).map((t, idx) => (
+                <View key={`${t.agent || t.agent_name}-${idx}`} style={styles.traceRow}>
+                  <View style={styles.traceDot} />
+                  <Text style={styles.traceText}>{t.agent || t.agent_name}</Text>
+                  <Text style={styles.traceTime}>{t.duration_ms || 0} ms</Text>
+                </View>
+              ))}
+            </View>
+
             <Text style={{ color: Colors.blackDeep, fontSize: 16, fontWeight: '800', marginTop: 10 }}>Available Karigars</Text>
             
             {agentResult.workers?.map((worker, idx) => (
@@ -158,11 +177,20 @@ export default function AgentWorkingScreen() {
                   </View>
                   <View style={{ flex: 1, marginLeft: 12 }}>
                     <Text style={styles.workerName}>{worker.name}</Text>
-                    <Text style={styles.workerRating}>{worker.rating || 'New'} ★ | {worker.distance_km?.toFixed(1) || '?'} km away</Text>
+                    <Text style={styles.workerRating}>
+                      {worker.rating || 'New'} ★ | {worker.distance_km?.toFixed(1) || '?'} km • {worker.travel_time_min || '?'} min
+                    </Text>
                   </View>
                   <View style={{ alignItems: 'flex-end' }}>
                     <Text style={{ color: Colors.greenPrimary, fontWeight: 'bold', fontSize: 16 }}>PKR {worker.pricing?.final_price}</Text>
                   </View>
+                </View>
+
+                <View style={styles.scoreRow}>
+                  <View style={styles.scoreBar}>
+                    <View style={[styles.scoreFill, { width: `${Math.min(100, worker.total_score || 0)}%` }]} />
+                  </View>
+                  <Text style={styles.scoreText}>Score: {worker.total_score || 0}/100</Text>
                 </View>
                 
                 {worker.reasoning && (
@@ -198,6 +226,14 @@ const styles = StyleSheet.create({
   bubbleText: { color: Colors.textOnDark, fontSize: 15, lineHeight: 22 },
   bubbleTime: { color: Colors.textMuted, fontSize: 10, marginTop: 6, textAlign: 'right' },
   traceBlock: { backgroundColor: Colors.whiteSoft, borderRadius: 20, padding: 16, borderWidth: 1, borderColor: Colors.border, marginBottom: 20, ...Shadows.card },
+  traceCard: { backgroundColor: Colors.whitePure, borderRadius: 16, padding: 14, borderWidth: 1, borderColor: Colors.border, ...Shadows.card },
+  traceHeaderRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 },
+  traceTitle: { color: Colors.blackDeep, fontSize: 13, fontWeight: '700' },
+  traceLink: { color: Colors.greenPrimary, fontSize: 12, fontWeight: '700' },
+  traceRow: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingVertical: 4 },
+  traceDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: Colors.successGreen },
+  traceText: { flex: 1, color: Colors.blackLight, fontSize: 12, fontWeight: '600' },
+  traceTime: { color: Colors.textMuted, fontSize: 11 },
   traceHeader: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 16 },
   kMark: { width: 32, height: 32, borderRadius: 16, backgroundColor: Colors.greenPrimary, alignItems: 'center', justifyContent: 'center' },
   traceTitle: { color: Colors.blackLight, fontSize: 11, fontWeight: '700', letterSpacing: 1, flex: 1 },
@@ -215,6 +251,10 @@ const styles = StyleSheet.create({
   workerRating: { color: Colors.greenLight, fontSize: 12, marginTop: 2 },
   confirmRow: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingVertical: 5 },
   confirmRowText: { color: Colors.textOnDark, fontSize: 14, opacity: 0.9 },
+  scoreRow: { marginTop: 12 },
+  scoreBar: { height: 6, backgroundColor: '#EAEAEA', borderRadius: 3, overflow: 'hidden' },
+  scoreFill: { height: '100%', backgroundColor: Colors.greenPrimary },
+  scoreText: { color: Colors.textMuted, fontSize: 11, marginTop: 6 },
   ctaPrimary: { marginTop: 16, backgroundColor: Colors.greenPrimary, borderRadius: 14, paddingVertical: 15, alignItems: 'center', ...Shadows.greenFloat },
   ctaPrimaryText: { color: Colors.blackDeep, fontSize: 15, fontWeight: '800' },
   ctaGhost: { marginTop: 10, alignItems: 'center', paddingVertical: 10 },

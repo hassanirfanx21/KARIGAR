@@ -64,7 +64,7 @@ export default function BaselineCompareScreen() {
     );
   }
 
-  // Calculate the difference in accuracy/matches based on mock logic or actual length
+  // Compare the number of live agentic matches against the baseline results
   const difference = agenticData.length; // Simply showing how many AI returned as accurate vs baseline
 
   return (

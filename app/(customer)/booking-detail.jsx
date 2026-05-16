@@ -1,34 +1,63 @@
-import React, { useState } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Alert } from 'react-native';
+import React, { useState, useEffect, useMemo } from 'react';
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Alert, ActivityIndicator, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Calendar, MapPin, Wrench, Tag, Key, CheckCircle2, User } from 'lucide-react-native';
 import { Colors, Shadows, Spacing, Radius } from '../../constants/theme';
+import { API_URL, GOOGLE_MAPS_API_KEY } from '../../constants/config';
+
+function buildStaticMapUrl(location) {
+  if (!location || !GOOGLE_MAPS_API_KEY) return null;
+  return `https://maps.googleapis.com/maps/api/staticmap?center=${location.lat},${location.lng}&zoom=15&size=900x420&scale=2&maptype=roadmap&markers=color:red|label:B|${location.lat},${location.lng}&key=${GOOGLE_MAPS_API_KEY}`;
+}
 
 export default function BookingDetailScreen() {
   const router = useRouter();
-  const { bookingId, workerName, slot, location, confirmCode, pricing: pricingStr } = useLocalSearchParams();
-  const pricing = JSON.parse(pricingStr || '{}');
+  const { bookingId } = useLocalSearchParams();
   const [agentExpanded, setAgentExpanded] = useState(false);
-  const status = 'confirmed';
-  const isConfirmed = status === 'confirmed';
+  const [booking, setBooking] = useState(null);
+  const [worker, setWorker] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const mapUrl = useMemo(() => buildStaticMapUrl(booking?.location), [booking]);
 
-  const detailRows = [
-    { icon: <Calendar size={18} color={Colors.textMuted} />, label: 'Tarikh', value: slot || 'Jumarat, 13 September 2024' },
-    { icon: <MapPin size={18} color={Colors.textMuted} />, label: 'Jagah', value: location || 'G-13, Islamabad' },
-    { icon: <Wrench size={18} color={Colors.textMuted} />, label: 'Service', value: 'AC Technician' },
-    { icon: <Tag size={18} color={Colors.textMuted} />, label: 'Booking ID', value: bookingId || 'BK-20240913-0047', mono: true },
-    { icon: <Key size={18} color={Colors.greenPrimary} />, label: 'Confirm Code', value: confirmCode || 'KRG-4751', gold: true },
-    { icon: <CheckCircle2 size={18} color={Colors.successGreen} />, label: 'Status', value: 'Confirmed', statusColor: Colors.successGreen },
-  ];
+  useEffect(() => {
+    async function loadBooking() {
+      if (!bookingId) {
+        setLoading(false);
+        return;
+      }
 
-  const agentSteps = [
-    { label: 'Intent Parser', done: 'Request samajh li ✓' },
-    { label: 'Provider Discovery', done: '4 Karigar mile ✓' },
-    { label: 'Matching & Ranking', done: 'Match mil gaya! ✓' },
-    { label: 'Booking Execution', done: 'Booking ho gayi! ✓' },
-    { label: 'Follow-Up', done: '3 reminders set ✓' },
-  ];
+      try {
+        const res = await fetch(`${API_URL}/api/bookings/${bookingId}`);
+        const data = await res.json();
+        if (!data.success) throw new Error('Booking not found');
+
+        setBooking(data.booking);
+
+        if (data.booking?.worker_id) {
+          const workerRes = await fetch(`${API_URL}/api/workers/${data.booking.worker_id}`);
+          const workerData = await workerRes.json();
+          if (workerData.success) setWorker(workerData.worker);
+        }
+      } catch (err) {
+        setError(err.message || 'Failed to load booking');
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    loadBooking();
+  }, [bookingId]);
+
+  const detailRows = booking ? [
+    { icon: <Calendar size={18} color={Colors.textMuted} />, label: 'Tarikh', value: booking.slot_date || 'TBD' },
+    { icon: <MapPin size={18} color={Colors.textMuted} />, label: 'Jagah', value: booking.location?.label || 'TBD' },
+    { icon: <Wrench size={18} color={Colors.textMuted} />, label: 'Service', value: booking.service_display || booking.service_type || 'Service' },
+    { icon: <Tag size={18} color={Colors.textMuted} />, label: 'Booking ID', value: booking.booking_ref || booking.id, mono: true },
+    { icon: <Key size={18} color={Colors.greenPrimary} />, label: 'Confirm Code', value: booking.confirmation_code || '—', gold: true },
+    { icon: <CheckCircle2 size={18} color={Colors.successGreen} />, label: 'Status', value: (booking.status || 'confirmed').toUpperCase(), statusColor: Colors.successGreen },
+  ] : [];
 
   return (
     <SafeAreaView style={styles.safe} edges={['top', 'left', 'right']}>
@@ -38,18 +67,39 @@ export default function BookingDetailScreen() {
         <View style={{ width: 38 }} />
       </View>
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+        {loading && (
+          <View style={styles.loadingWrap}>
+            <ActivityIndicator color={Colors.greenPrimary} />
+            <Text style={styles.loadingText}>Booking detail load ho raha hai...</Text>
+          </View>
+        )}
+
+        {!loading && error && (
+          <View style={styles.errorWrap}>
+            <Text style={styles.errorText}>❌ {error}</Text>
+          </View>
+        )}
+
+        {!loading && !error && !booking && (
+          <View style={styles.emptyWrap}>
+            <Text style={styles.emptyTitle}>Koi booking select nahi hui</Text>
+          </View>
+        )}
+
+        {!loading && !error && booking && (
+        <>
         {/* Hero */}
         <View style={styles.heroCard}>
           <View style={styles.heroAvatar}>
             <User size={36} color={Colors.greenPrimary} />
           </View>
-          <Text style={styles.heroName}>{workerName || 'Ali AC Services'}</Text>
+          <Text style={styles.heroName}>{worker?.name || booking.worker_id || 'Karigar'}</Text>
           <View style={styles.heroCatRow}>
-            <View style={styles.catChip}><Text style={styles.catChipText}>AC Technician</Text></View>
-            <Text style={styles.heroRating}>⭐ 4.8</Text>
+            <View style={styles.catChip}><Text style={styles.catChipText}>{booking.service_display || 'Service'}</Text></View>
+            <Text style={styles.heroRating}>⭐ {worker?.rating || 'New'}</Text>
           </View>
           <View style={[styles.statusLarge, { backgroundColor: `${Colors.successGreen}20` }]}>
-            <Text style={[styles.statusLargeText, { color: Colors.successGreen }]}>● Confirmed</Text>
+            <Text style={[styles.statusLargeText, { color: Colors.successGreen }]}>● {booking.status || 'confirmed'}</Text>
           </View>
           <View style={styles.heroAccent} />
         </View>
@@ -72,8 +122,8 @@ export default function BookingDetailScreen() {
         {/* Pricing */}
         <Text style={styles.sectionLabel}>QEEMAT KA HISAAB</Text>
         <View style={styles.detailsCard}>
-          {pricing.breakdown ? pricing.breakdown.map((item, i) => {
-            const isTotal = i === pricing.breakdown.length - 1;
+          {booking.pricing?.breakdown ? booking.pricing.breakdown.map((item, i) => {
+            const isTotal = i === booking.pricing.breakdown.length - 1;
             return (
               <View key={item.label} style={[styles.pricingRow, isTotal && styles.pricingRowTotal]}>
                 <Text style={[styles.pricingLabel, item.bold && styles.pricingLabelBold, isTotal && styles.pricingTotalText]}>{item.label}</Text>
@@ -90,6 +140,40 @@ export default function BookingDetailScreen() {
           )}
         </View>
 
+        {/* Worker Info */}
+        <Text style={styles.sectionLabel}>WORKER INFO</Text>
+        <View style={styles.detailsCard}>
+          <View style={styles.detailRow}>
+            <View style={styles.detailIcon}><Text>⭐</Text></View>
+            <Text style={styles.detailLabel}>Rating</Text>
+            <Text style={styles.detailValue}>{worker?.rating || 'New'} ({worker?.total_reviews || 0} reviews)</Text>
+          </View>
+          <View style={styles.rowDivider} />
+          <View style={styles.detailRow}>
+            <View style={styles.detailIcon}><Text>⏰</Text></View>
+            <Text style={styles.detailLabel}>Available</Text>
+            <Text style={styles.detailValue}>{worker?.available_hours || 'Not set'}</Text>
+          </View>
+          <View style={styles.rowDivider} />
+          <View style={styles.detailRow}>
+            <View style={styles.detailIcon}><Text>📆</Text></View>
+            <Text style={styles.detailLabel}>Days</Text>
+            <Text style={styles.detailValue}>{worker?.available_days?.join(', ') || 'Not set'}</Text>
+          </View>
+          <View style={styles.rowDivider} />
+          <View style={styles.detailRow}>
+            <View style={styles.detailIcon}><Text>✅</Text></View>
+            <Text style={styles.detailLabel}>On-time</Text>
+            <Text style={styles.detailValue}>{worker?.on_time_rate || 0}%</Text>
+          </View>
+          <View style={styles.rowDivider} />
+          <View style={styles.detailRow}>
+            <View style={styles.detailIcon}><Text>⚠️</Text></View>
+            <Text style={styles.detailLabel}>Cancel</Text>
+            <Text style={styles.detailValue}>{worker?.cancellation_rate || 0}%</Text>
+          </View>
+        </View>
+
         {/* Agent Reasoning */}
         <Text style={styles.sectionLabel}>AI KA FAISLA</Text>
         <View style={styles.agentCard}>
@@ -102,17 +186,17 @@ export default function BookingDetailScreen() {
           </View>
           {agentExpanded && (
             <View style={styles.agentSteps}>
-              {agentSteps.map(s => (
-                <View key={s.label} style={styles.agentStepItem}>
+              {(booking.agent_trace || []).map((s, idx) => (
+                <View key={`${s.agent || s.agent_name}-${idx}`} style={styles.agentStepItem}>
                   <View style={styles.agentDot} />
                   <View style={{ flex: 1 }}>
-                    <Text style={styles.agentStepLabel}>{s.label}</Text>
-                    <Text style={styles.agentStepDone}>{s.done}</Text>
+                    <Text style={styles.agentStepLabel}>{s.agent || s.agent_name}</Text>
+                    <Text style={styles.agentStepDone}>{s.reasoning || s.output_summary || 'Completed'}</Text>
                   </View>
                 </View>
               ))}
               <View style={styles.agentTotalRow}>
-                <Text style={styles.agentTotal}>Total Processing: 3.2 seconds</Text>
+                <Text style={styles.agentTotal}>Total Processing: {booking.total_duration_ms || '--'} ms</Text>
               </View>
             </View>
           )}
@@ -121,17 +205,19 @@ export default function BookingDetailScreen() {
         {/* Map */}
         <Text style={styles.sectionLabel}>JAGAH</Text>
         <View style={styles.mapPreview}>
-          <View style={styles.mapGrid}>
-            {Array.from({ length: 48 }).map((_, i) => (
-              <View key={i} style={[styles.mapCell, i % 2 === 0 && styles.mapCellAlt]} />
-            ))}
-          </View>
-          <View style={styles.mapPin}>
-            <MapPin size={32} color={Colors.errorRed} />
-          </View>
-          <View style={styles.mapLabel}><Text style={styles.mapLabelText}>📍 {location || 'G-13, Islamabad'}</Text></View>
+          {mapUrl ? (
+            <Image source={{ uri: mapUrl }} style={styles.mapImage} resizeMode="cover" />
+          ) : (
+            <View style={styles.mapFallback}>
+              <Text style={styles.mapFallbackTitle}>Google Maps preview</Text>
+              <Text style={styles.mapFallbackText}>{booking.location?.label || 'Location unavailable'}</Text>
+            </View>
+          )}
+          <View style={styles.mapLabel}><Text style={styles.mapLabelText}>📍 {booking.location?.label || 'Unknown'}</Text></View>
         </View>
         <View style={{ height: 100 }} />
+        </>
+        )}
       </ScrollView>
 
       {/* Bottom Actions */}
@@ -157,6 +243,12 @@ const styles = StyleSheet.create({
   backArrow: { fontSize: 20, color: Colors.blackDeep },
   headerTitle: { flex: 1, textAlign: 'center', fontSize: 17, fontWeight: '700', color: Colors.blackDeep },
   scrollContent: { padding: 16 },
+  loadingWrap: { alignItems: 'center', paddingVertical: 40 },
+  loadingText: { color: Colors.textMuted, fontSize: 12, marginTop: 10 },
+  errorWrap: { alignItems: 'center', paddingVertical: 30 },
+  errorText: { color: Colors.errorRed, fontSize: 13 },
+  emptyWrap: { alignItems: 'center', paddingVertical: 30 },
+  emptyTitle: { color: Colors.blackDeep, fontSize: 16, fontWeight: '700' },
   heroCard: { backgroundColor: Colors.grayMatte, borderRadius: 22, padding: 24, alignItems: 'center', marginBottom: 20, ...Shadows.cardHeavy },
   heroAvatar: { width: 88, height: 88, borderRadius: 44, backgroundColor: `${Colors.greenPrimary}30`, alignItems: 'center', justifyContent: 'center', borderWidth: 3, borderColor: Colors.greenPrimary, marginBottom: 14 },
   heroName: { color: Colors.textOnDark, fontSize: 20, fontWeight: '800', marginBottom: 8, textAlign: 'center' },
@@ -199,10 +291,10 @@ const styles = StyleSheet.create({
   agentTotalRow: { borderTopWidth: 1, borderTopColor: Colors.border, marginTop: 8, paddingTop: 8 },
   agentTotal: { color: Colors.textMuted, fontSize: 10, textAlign: 'right' },
   mapPreview: { height: 180, borderRadius: 18, overflow: 'hidden', marginBottom: 20, backgroundColor: '#EEE8E0', position: 'relative', borderWidth: 1, borderColor: Colors.border },
-  mapGrid: { flexDirection: 'row', flexWrap: 'wrap', position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 },
-  mapCell: { width: '12.5%', aspectRatio: 1, backgroundColor: '#F0EAE0' },
-  mapCellAlt: { backgroundColor: '#E8E0D4' },
-  mapPin: { position: 'absolute', top: '25%', left: '45%' },
+  mapImage: { width: '100%', height: '100%' },
+  mapFallback: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 20, backgroundColor: '#EEE8E0' },
+  mapFallbackTitle: { color: Colors.blackDeep, fontSize: 14, fontWeight: '800', marginBottom: 4 },
+  mapFallbackText: { color: Colors.textMuted, fontSize: 12, textAlign: 'center' },
   mapLabel: { position: 'absolute', bottom: 12, left: 12, backgroundColor: Colors.blackDeep, paddingHorizontal: 12, paddingVertical: 6, borderRadius: Radius.full },
   mapLabelText: { color: '#fff', fontSize: 11, fontWeight: '600' },
   bottomActions: { position: 'absolute', bottom: 0, left: 0, right: 0, backgroundColor: Colors.whitePure, paddingHorizontal: 16, paddingVertical: 12, borderTopWidth: 1, borderTopColor: Colors.border, ...Shadows.darkHeader },

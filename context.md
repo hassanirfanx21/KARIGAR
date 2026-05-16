@@ -36,5 +36,14 @@ KARIGAR is a dual-role React Native application (Customer & Worker) powered by a
 5. **Auth System**: Scaffold OTP generation, `bcrypt` password hashing, and JWT endpoints.
 6. **Data & Map**: Add `seed.js` for real test workers and update `map.jsx` to fetch real data.
 
+## 5. Current Live Status
+
+- `agent-working.jsx` now renders the live backend response and trace summary instead of a static animation storyboard.
+- `agent-trace.jsx` renders the actual trace payload from the backend or a booking record.
+- `map.jsx` now fetches nearby workers live and can show a Google Static Maps preview.
+- `booking-detail.jsx` and `notifications.jsx` now load live backend data.
+- Travel time is part of discovery/ranking through Google Maps Distance Matrix when configured.
+- Still intentionally left for later: APK generation, full Antigravity integration, and production auth/OTP.
+
 ---
 *(Note: Update this file manually after prompts to keep the model contextually aligned with minor tweaks)*

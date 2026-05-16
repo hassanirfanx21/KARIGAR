@@ -1,36 +1,17 @@
-import React, { useEffect, useRef } from "react";
-import { View, Text, FlatList, TouchableOpacity, Animated } from "react-native";
+import React, { useEffect, useRef, useState } from "react";
+import { View, Text, FlatList, TouchableOpacity, Animated, ActivityIndicator } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Check, Bell, Star, ArrowLeft } from "lucide-react-native";
 import { COLORS } from "../constants/theme";
 import { useRouter } from "expo-router";
+import { API_URL } from "../constants/config";
 
-const mockNotifications = [
-  {
-    id: "1",
-    type: "booking",
-    title: "Booking Confirmed",
-    body: "Ali AC Services kal 10:00 AM par aa rahe hain! Code: KRG-4751",
-    timestamp: "2 min ago",
-    unread: true,
-  },
-  {
-    id: "2",
-    type: "reminder",
-    title: "Upcoming Visit",
-    body: "Ali AC Services ki visit 10:00 AM par hai.",
-    timestamp: "1 hour ago",
-    unread: true,
-  },
-  {
-    id: "3",
-    type: "rating",
-    title: "Rate Your Experience",
-    body: "Service complete ho gayi. Feedback dein.",
-    timestamp: "Yesterday",
-    unread: false,
-  },
-];
+const TYPE_LABELS = {
+  booking: "Booking Confirmed",
+  reminder: "Upcoming Visit",
+  rating: "Rate Your Experience",
+  status: "Status Update",
+};
 
 const NotificationIcon = ({ type }) => {
   const config = {
@@ -133,7 +114,41 @@ const AnimatedItem = ({
 
 export default function NotificationScreen() {
   const router = useRouter();
-  const unreadCount = mockNotifications.filter((n) => n.unread).length;
+  const [notifications, setNotifications] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    async function loadNotifications() {
+      try {
+        setLoading(true);
+        const res = await fetch(`${API_URL}/api/notifications?limit=30`);
+        const data = await res.json();
+        if (!data.success) {
+          throw new Error(data.error || "Notifications unavailable");
+        }
+
+        const mapped = (data.notifications || []).map((item, index) => ({
+          id: item.id || `${index}`,
+          type: item.type || "booking",
+          title: item.title || TYPE_LABELS[item.type] || "Notification",
+          body: item.message || item.body || "System update",
+          timestamp: item.sent_at ? new Date(item.sent_at).toLocaleString() : "Just now",
+          unread: item.read !== true,
+        }));
+
+        setNotifications(mapped);
+      } catch (err) {
+        setError(err.message || "Notifications load nahi ho saki");
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    loadNotifications();
+  }, []);
+
+  const unreadCount = notifications.filter((n) => n.unread).length;
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: COLORS.backgroundBase }}>
@@ -150,14 +165,31 @@ export default function NotificationScreen() {
         </View>
       </View>
 
-      <FlatList
-        data={mockNotifications}
-        renderItem={({ item, index }) => (
-          <AnimatedItem item={item} index={index} />
-        )}
-        keyExtractor={(item) => item.id}
-        contentContainerStyle={{ paddingBottom: 20 }}
-      />
+      {loading ? (
+        <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}>
+          <ActivityIndicator color={COLORS.greenPrimary} />
+          <Text style={{ marginTop: 10, color: COLORS.textSecondary }}>Notifications load ho rahi hain...</Text>
+        </View>
+      ) : error ? (
+        <View style={{ flex: 1, alignItems: "center", justifyContent: "center", paddingHorizontal: 24 }}>
+          <Text style={{ textAlign: "center", color: COLORS.textPrimary, fontWeight: "600" }}>Kuch masla hua</Text>
+          <Text style={{ textAlign: "center", color: COLORS.textSecondary, marginTop: 6 }}>{error}</Text>
+        </View>
+      ) : notifications.length === 0 ? (
+        <View style={{ flex: 1, alignItems: "center", justifyContent: "center", paddingHorizontal: 24 }}>
+          <Text style={{ textAlign: "center", color: COLORS.textPrimary, fontWeight: "600" }}>No notifications yet</Text>
+          <Text style={{ textAlign: "center", color: COLORS.textSecondary, marginTop: 6 }}>Booking aur reminders yahan live appear hongi.</Text>
+        </View>
+      ) : (
+        <FlatList
+          data={notifications}
+          renderItem={({ item, index }) => (
+            <AnimatedItem item={item} index={index} />
+          )}
+          keyExtractor={(item) => item.id}
+          contentContainerStyle={{ paddingBottom: 20 }}
+        />
+      )}
     </SafeAreaView>
   );
 }

@@ -339,6 +339,8 @@ async function processBooking(input) {
 
   // ── Step 2: Notification Agent ────────────────────────────────────────
   const notifInput = {
+    user_id: user_id || 'anonymous',
+    worker_id,
     booking_id: booking.booking_id,
     confirmation_code: booking.confirmation_code,
     user_phone: user_phone || 'N/A',

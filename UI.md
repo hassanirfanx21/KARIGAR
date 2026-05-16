@@ -918,6 +918,15 @@ Date range picker card (white-pure, border #E0D8D0, radius 16px):
 
 Each section: white-pure card, radius 16px, border #E0D8D0, padding 16px. Header: section label (label-caps, gold-primary) + Pencil edit icon (charcoal-light, right).
 
+---
+
+## Live UI Implementation Notes
+
+- `agent-working.jsx` and `agent-trace.jsx` now render the real backend trace payload instead of a static step storyboard.
+- `map.jsx` pulls nearby providers from the backend and uses Google Static Maps when a Maps API key is configured.
+- `booking-detail.jsx` renders live booking, worker, pricing, and map data.
+- `notifications.jsx` now fetches the live notifications feed from the backend.
+
 - Service Details — lists current category, tags, price
 - Location & Radius — shows area, service radius
 - About Me — text description (editable)

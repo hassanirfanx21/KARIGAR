@@ -1,16 +1,16 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View, Text, ScrollView, TouchableOpacity, TextInput,
-  StyleSheet, Dimensions, StatusBar, KeyboardAvoidingView, Platform
+  StyleSheet, Dimensions, StatusBar, KeyboardAvoidingView, Platform, ActivityIndicator
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Bell, MapPin, Snowflake, PenTool, Zap, Brush, PaintBucket, Hammer, User, Calendar } from 'lucide-react-native';
 import { useRouter } from 'expo-router';
 import { Colors, Shadows, Spacing, Radius } from '../../constants/theme';
-
-import * as Location from 'expo-location';
+import { API_URL } from '../../constants/config';
 
 const { width: W } = Dimensions.get('window');
+const DEFAULT_CENTER = { lat: 33.6844, lng: 73.0479 };
 
 const SERVICES = [
   { id: 'ac', icon: <Snowflake size={24} color={Colors.greenPrimary} />, label: 'AC Repair' },
@@ -21,47 +21,64 @@ const SERVICES = [
   { id: 'carpenter', icon: <Hammer size={24} color={Colors.greenPrimary} />, label: 'Carpenter' },
 ];
 
-const ACTIVE_BOOKING = {
-  worker: 'Ali AC Services',
-  service: 'AC Repair',
-  date: 'Aaj, 3:00 PM',
-  status: 'confirmed',
-};
+const USER_ID = 'anonymous';
+
+function formatSlot(booking) {
+  const date = booking?.slot_date || booking?.slot?.date;
+  const start = booking?.slot_time?.start || booking?.slot?.start;
+  const end = booking?.slot_time?.end || booking?.slot?.end;
+  if (!date) return 'TBD';
+  return `${date} • ${start || '--'}-${end || '--'}`;
+}
 
 export default function CustomerHomeScreen() {
   const router = useRouter();
   const [message, setMessage] = useState('');
   const [activeChip, setActiveChip] = useState(null);
   const [isSending, setIsSending] = useState(false);
+  const [locationLabel] = useState('Islamabad');
+  const [activeBooking, setActiveBooking] = useState(null);
+  const [loadingBooking, setLoadingBooking] = useState(true);
+  const [nearbyCount, setNearbyCount] = useState(0);
+  const [loadingNearby, setLoadingNearby] = useState(true);
+
+  useEffect(() => {
+    async function loadBookings() {
+      try {
+        const res = await fetch(`${API_URL}/api/bookings?limit=1`);
+        const data = await res.json();
+        const bookings = data.bookings || [];
+        setActiveBooking(bookings[0] || null);
+      } catch {
+        setActiveBooking(null);
+      } finally {
+        setLoadingBooking(false);
+      }
+    }
+
+    async function loadNearby() {
+      try {
+        const res = await fetch(`${API_URL}/api/workers/nearby?lat=${DEFAULT_CENTER.lat}&lng=${DEFAULT_CENTER.lng}&radius=10`);
+        const data = await res.json();
+        setNearbyCount(data.total || 0);
+      } catch {
+        setNearbyCount(0);
+      } finally {
+        setLoadingNearby(false);
+      }
+    }
+
+    loadBookings();
+    loadNearby();
+  }, []);
 
   const handleSend = async () => {
     if (message.trim()) {
       setIsSending(true);
-      console.log('[HOME][INFO] Requesting location permissions...');
-      let { status } = await Location.requestForegroundPermissionsAsync();
-      
-      let locationParams = null;
-      if (status === 'granted') {
-        console.log('[HOME][INFO] Fetching current position...');
-        try {
-          const loc = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
-          locationParams = {
-            lat: loc.coords.latitude,
-            lng: loc.coords.longitude
-          };
-          console.log(`[HOME][SUCCESS] Location fetched: ${locationParams.lat}, ${locationParams.lng}`);
-        } catch (err) {
-          console.warn('[HOME][WARN] Could not fetch location:', err);
-        }
-      } else {
-        console.log('[HOME][WARN] Location permission denied.');
-      }
-
       router.push({ 
         pathname: '/(customer)/agent-working', 
         params: { 
           message: message.trim(),
-          ...(locationParams ? { lat: locationParams.lat, lng: locationParams.lng } : {})
         } 
       });
       setMessage('');
@@ -84,7 +101,7 @@ export default function CustomerHomeScreen() {
               <View style={styles.topRow}>
                 <View>
                   <Text style={styles.greeting}>Assalamualaikum,</Text>
-                  <Text style={styles.userName}>Ahmed Khan</Text>
+                  <Text style={styles.userName}>Guest</Text>
                 </View>
                 <TouchableOpacity style={styles.notifBtn} onPress={() => router.push('/notifications')}>
                   <Bell size={20} color={Colors.textOnDark} />
@@ -95,7 +112,7 @@ export default function CustomerHomeScreen() {
               {/* Location */}
               <View style={styles.locationRow}>
                 <MapPin size={14} color={Colors.textMuted} />
-                <Text style={styles.locationText}>G-13, Islamabad</Text>
+                <Text style={styles.locationText}>{locationLabel}</Text>
                 <Text style={styles.locationChange}>Badlein</Text>
               </View>
             </View>
@@ -129,27 +146,42 @@ export default function CustomerHomeScreen() {
         <View style={styles.section}>
           <Text style={styles.sectionLabel}>ACTIVE BOOKING</Text>
           <TouchableOpacity style={styles.bookingCard} activeOpacity={0.9}
-            onPress={() => router.push('/(customer)/booking-detail')}>
-              <View style={styles.activeRow}>
-                <View style={styles.activeAvatar}>
-                  <User size={24} color={Colors.greenPrimary} />
+            onPress={() => activeBooking && router.push({ pathname: '/(customer)/booking-detail', params: { bookingId: activeBooking.booking_ref || activeBooking.id } })}
+            disabled={!activeBooking}>
+              {loadingBooking ? (
+                <View style={styles.loadingRow}>
+                  <ActivityIndicator color={Colors.greenPrimary} />
+                  <Text style={styles.loadingText}>Loading booking...</Text>
                 </View>
-                <View style={{ flex: 1, marginLeft: 12 }}>
-                  <Text style={styles.activeWorker}>{ACTIVE_BOOKING.worker}</Text>
-                  <Text style={styles.activeService}>{ACTIVE_BOOKING.service}</Text>
+              ) : activeBooking ? (
+                <>
+                  <View style={styles.activeRow}>
+                    <View style={styles.activeAvatar}>
+                      <User size={24} color={Colors.greenPrimary} />
+                    </View>
+                    <View style={{ flex: 1, marginLeft: 12 }}>
+                          <Text style={styles.activeWorker}>{activeBooking.worker_name || activeBooking.service_display || activeBooking.service_type || 'Service'}</Text>
+                      <Text style={styles.activeService}>{activeBooking.service_display || activeBooking.service_type}</Text>
+                    </View>
+                    <View style={styles.statusBadge}>
+                      <Text style={styles.statusText}>{(activeBooking.status || 'confirmed').toUpperCase()}</Text>
+                    </View>
+                  </View>
+                  <View style={styles.activeDivider} />
+                  <View style={styles.activeFooter}>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                      <Calendar size={14} color={Colors.textMedium} />
+                      <Text style={styles.activeDate}>{formatSlot(activeBooking)}</Text>
+                    </View>
+                    <MapPin size={14} color={Colors.textMuted} />
+                  </View>
+                </>
+              ) : (
+                <View style={styles.emptyBooking}>
+                  <Text style={styles.emptyBookingTitle}>Koi active booking nahi</Text>
+                  <Text style={styles.emptyBookingSub}>Apni request bhejein aur AI match karega</Text>
                 </View>
-                <View style={styles.statusBadge}>
-                  <Text style={styles.statusText}>Confirmed</Text>
-                </View>
-              </View>
-              <View style={styles.activeDivider} />
-              <View style={styles.activeFooter}>
-                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                  <Calendar size={14} color={Colors.textMedium} />
-                  <Text style={styles.activeDate}>{ACTIVE_BOOKING.date}</Text>
-                </View>
-                <MapPin size={14} color={Colors.textMuted} />
-              </View>
+              )}
           </TouchableOpacity>
         </View>
 
@@ -160,7 +192,11 @@ export default function CustomerHomeScreen() {
             <View style={styles.nearbyInner}>
               <Text style={{ fontSize: 28, marginBottom: 8 }}>📍</Text>
               <Text style={styles.nearbyTitle}>Aas Paas ke Karigar</Text>
-              <Text style={styles.nearbySub}>5 karigar qareeb mein available</Text>
+              {loadingNearby ? (
+                <Text style={styles.nearbySub}>Loading nearby workers...</Text>
+              ) : (
+                <Text style={styles.nearbySub}>{nearbyCount} karigar qareeb mein available</Text>
+              )}
             </View>
             <Text style={styles.nearbyArrow}>→</Text>
           </TouchableOpacity>
@@ -260,6 +296,11 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.grayMatte, borderRadius: Radius.xl, padding: 18,
     ...Shadows.cardHeavy,
   },
+  loadingRow: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 12 },
+  loadingText: { color: Colors.textOnDark, fontSize: 12, fontWeight: '600' },
+  emptyBooking: { alignItems: 'center', paddingVertical: 12 },
+  emptyBookingTitle: { color: Colors.textOnDark, fontSize: 14, fontWeight: '700' },
+  emptyBookingSub: { color: Colors.textMuted, fontSize: 12, marginTop: 6 },
   bookingTopRow: { flexDirection: 'row', alignItems: 'center' },
   bookingAvatar: {
     width: 48, height: 48, borderRadius: 24,

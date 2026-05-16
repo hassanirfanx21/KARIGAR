@@ -2,6 +2,13 @@
 
 Welcome to the comprehensive developer documentation for KARIGAR. This guide is intended to provide a new developer with everything they need to understand the architecture, connect to the database, understand the AI agent flow, and work on the frontend/backend.
 
+## Current Live UI Status
+
+- The main customer flow now shows live trace data, nearby workers, notifications, and booking details from the backend.
+- The booking and nearby map screens use Google Static Maps when the frontend Maps API key is present.
+- The ranking pipeline now considers travel time in addition to distance.
+- Remaining non-blocking gaps are still the same demo-only items: APK packaging, full Antigravity integration, and production auth/OTP.
+
 ---
 
 ## 1. System Overview & Architecture Flow

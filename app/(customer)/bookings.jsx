@@ -1,16 +1,12 @@
-import React, { useState } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Alert } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Colors, Shadows, Spacing, Radius } from '../../constants/theme';
+import { API_URL } from '../../constants/config';
 
 const FILTER_TABS = ['Sab', 'Active', 'Mukammal', 'Cancel'];
-const BOOKINGS = [
-  { id: 'bk1', worker: 'Ali AC Services', service: 'AC Repair', date: 'Aaj, 15 May', time: '2:00 PM – 4:00 PM', status: 'confirmed', amount: 'Rs. 1,500', bookingId: 'BK-0047', emoji: '❄️' },
-  { id: 'bk2', worker: 'Sara Services', service: 'Home Cleaning', date: 'Kal, 16 May', time: '10:00 AM – 12:00 PM', status: 'pending', amount: 'Rs. 2,000', bookingId: 'BK-0048', emoji: '🧹' },
-  { id: 'bk3', worker: 'Bilal Fixer', service: 'Plumbing', date: '10 May 2025', time: '11:00 AM', status: 'cancelled', amount: 'Rs. 800', bookingId: 'BK-0039', emoji: '🔧' },
-  { id: 'bk4', worker: 'Tariq Electric', service: 'Electrician', date: '5 May 2025', time: '9:00 AM – 11:00 AM', status: 'completed', amount: 'Rs. 1,200', bookingId: 'BK-0031', emoji: '⚡' },
-];
+const USER_ID = 'anonymous';
 const STATUS_CFG = {
   confirmed: { label: 'Confirmed', color: Colors.successGreen, bg: Colors.confirmedBg, dot: '●' },
   pending: { label: 'Pending', color: Colors.pendingOrange, bg: Colors.pendingBg, dot: '●' },
@@ -18,33 +14,41 @@ const STATUS_CFG = {
   completed: { label: 'Mukammal', color: Colors.greenPrimary, bg: Colors.greenMuted, dot: '✓' },
 };
 
+function formatSlot(booking) {
+  const date = booking?.slot_date || booking?.slot?.date || 'TBD';
+  const start = booking?.slot_time?.start || booking?.slot?.start || '--';
+  const end = booking?.slot_time?.end || booking?.slot?.end || '--';
+  return { date, time: `${start} – ${end}` };
+}
+
 function BookingCard({ booking, onView }) {
-  const cfg = STATUS_CFG[booking.status];
+  const cfg = STATUS_CFG[booking.status] || STATUS_CFG.pending;
+  const slot = formatSlot(booking);
   return (
     <View style={styles.card}>
       <View style={[styles.cardAccent, { backgroundColor: cfg.color }]} />
       <View style={styles.cardTopRow}>
-        <View style={styles.workerAvatar}><Text style={{ fontSize: 24 }}>{booking.emoji}</Text></View>
+        <View style={styles.workerAvatar}><Text style={{ fontSize: 18 }}>👷</Text></View>
         <View style={{ flex: 1 }}>
           <View style={styles.cardTitleRow}>
-            <Text style={styles.workerName}>{booking.worker}</Text>
+            <Text style={styles.workerName}>{booking.service_display || booking.service_type || 'Service'}</Text>
             <View style={[styles.statusBadge, { backgroundColor: cfg.bg }]}>
               <Text style={[styles.statusText, { color: cfg.color }]}>{cfg.dot} {cfg.label}</Text>
             </View>
           </View>
-          <Text style={styles.serviceLabel}>{booking.service}</Text>
+          <Text style={styles.serviceLabel}>{booking.worker_id || 'Worker not assigned'}</Text>
         </View>
       </View>
       <View style={styles.cardDivider} />
       <View style={styles.metaRow}>
-        <Text style={styles.metaText}>📅 {booking.date}</Text>
+        <Text style={styles.metaText}>📅 {slot.date}</Text>
         <View style={styles.metaDot} />
-        <Text style={styles.metaText}>⏰ {booking.time}</Text>
+        <Text style={styles.metaText}>⏰ {slot.time}</Text>
       </View>
       <View style={styles.cardFooter}>
         <View>
           <Text style={styles.amountLabel}>Total</Text>
-          <Text style={styles.amountValue}>{booking.amount}</Text>
+          <Text style={styles.amountValue}>PKR {booking?.pricing?.final_price || '--'}</Text>
         </View>
         {(booking.status === 'confirmed' || booking.status === 'completed') && (
           <TouchableOpacity style={styles.btnView} onPress={() => onView?.(booking)} activeOpacity={0.85}>
@@ -53,7 +57,7 @@ function BookingCard({ booking, onView }) {
         )}
         {booking.status === 'cancelled' && <Text style={styles.cancelNote}>Booking cancel ho gayi</Text>}
       </View>
-      <Text style={styles.bookingId}>{booking.bookingId}</Text>
+      <Text style={styles.bookingId}>{booking.booking_ref || booking.id}</Text>
     </View>
   );
 }
@@ -61,8 +65,26 @@ function BookingCard({ booking, onView }) {
 export default function BookingsScreen() {
   const router = useRouter();
   const [activeFilter, setActiveFilter] = useState('Sab');
-  const filterMap = { Sab: null, Active: ['confirmed', 'pending'], Mukammal: ['completed'], Cancel: ['cancelled'] };
-  const filtered = filterMap[activeFilter] ? BOOKINGS.filter(b => filterMap[activeFilter].includes(b.status)) : BOOKINGS;
+  const [bookings, setBookings] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const filterMap = { Sab: null, Active: ['confirmed', 'pending', 'in_progress'], Mukammal: ['completed'], Cancel: ['cancelled'] };
+  const filtered = filterMap[activeFilter] ? bookings.filter(b => filterMap[activeFilter].includes(b.status)) : bookings;
+
+  useEffect(() => {
+    async function loadBookings() {
+      try {
+        const res = await fetch(`${API_URL}/api/bookings?user_id=${USER_ID}`);
+        const data = await res.json();
+        setBookings(data.bookings || []);
+      } catch {
+        setBookings([]);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    loadBookings();
+  }, []);
 
   return (
     <SafeAreaView style={styles.safe} edges={['top', 'left', 'right']}>
@@ -74,9 +96,9 @@ export default function BookingsScreen() {
       </View>
       <View style={styles.summaryRow}>
         {[
-          { label: 'Active', count: BOOKINGS.filter(b => ['confirmed', 'pending'].includes(b.status)).length, color: Colors.successGreen },
-          { label: 'Pending', count: BOOKINGS.filter(b => b.status === 'pending').length, color: Colors.pendingOrange },
-          { label: 'Total', count: BOOKINGS.length, color: Colors.greenPrimary },
+          { label: 'Active', count: bookings.filter(b => ['confirmed', 'pending', 'in_progress'].includes(b.status)).length, color: Colors.successGreen },
+          { label: 'Pending', count: bookings.filter(b => b.status === 'pending').length, color: Colors.pendingOrange },
+          { label: 'Total', count: bookings.length, color: Colors.greenPrimary },
         ].map(p => (
           <View key={p.label} style={styles.summaryPill}>
             <Text style={[styles.summaryCount, { color: p.color }]}>{p.count}</Text>
@@ -93,13 +115,22 @@ export default function BookingsScreen() {
         ))}
       </ScrollView>
       <ScrollView contentContainerStyle={styles.listContent} showsVerticalScrollIndicator={false}>
-        {filtered.length === 0 ? (
+        {loading ? (
+          <View style={styles.loadingWrap}>
+            <ActivityIndicator color={Colors.greenPrimary} />
+            <Text style={styles.loadingText}>Bookings load ho rahi hain...</Text>
+          </View>
+        ) : filtered.length === 0 ? (
           <View style={styles.emptyWrap}>
             <Text style={{ fontSize: 42 }}>📋</Text>
             <Text style={styles.emptyTitle}>Abhi tak koi booking nahi</Text>
           </View>
         ) : filtered.map(b => (
-          <BookingCard key={b.id} booking={b} onView={() => router.push('/(customer)/booking-detail')} />
+          <BookingCard
+            key={b.id}
+            booking={b}
+            onView={() => router.push({ pathname: '/(customer)/booking-detail', params: { bookingId: b.booking_ref || b.id } })}
+          />
         ))}
       </ScrollView>
     </SafeAreaView>
@@ -121,6 +152,8 @@ const styles = StyleSheet.create({
   filterChipText: { color: Colors.blackLight, fontSize: 13, fontWeight: '600' },
   filterChipTextActive: { color: Colors.whitePure },
   listContent: { padding: 16, gap: 14 },
+  loadingWrap: { alignItems: 'center', paddingTop: 40 },
+  loadingText: { color: Colors.textMuted, fontSize: 12, marginTop: 10 },
   card: { backgroundColor: Colors.whitePure, borderRadius: 20, borderWidth: 1, borderColor: Colors.border, overflow: 'hidden', ...Shadows.card },
   cardAccent: { height: 3, width: '100%' },
   cardTopRow: { flexDirection: 'row', alignItems: 'center', padding: 16, gap: 12 },

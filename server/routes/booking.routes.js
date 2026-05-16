@@ -7,6 +7,34 @@ const router = express.Router();
 const { db } = require('../config/firebase');
 const { processDispute } = require('../agents/orchestrator');
 
+// List bookings (optional filters: user_id, worker_id)
+router.get('/', async (req, res) => {
+  try {
+    const { user_id, worker_id, limit = 20 } = req.query;
+    let query = db.collection('bookings');
+
+    if (user_id) {
+      query = query.where('user_id', '==', user_id);
+    } else if (worker_id) {
+      query = query.where('worker_id', '==', worker_id);
+    }
+
+    query = query.orderBy('created_at', 'desc').limit(Number(limit));
+
+    const snapshot = await query.get();
+    const bookings = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+
+    res.json({
+      success: true,
+      total: bookings.length,
+      bookings,
+    });
+  } catch (err) {
+    console.error('[Booking Route Error]', err.message);
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // Get booking detail by ID (includes agent_trace)
 router.get('/:id', async (req, res) => {
   try {

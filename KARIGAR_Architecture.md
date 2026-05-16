@@ -898,3 +898,9 @@ APP renders live agent trace + booking confirmation card
 ---
 
 *KARIGAR Architecture v1.0 — Google AI Seekho Hackathon*
+
+## Live Frontend Notes
+
+- The customer screens now read from the backend for trace, nearby workers, booking detail, and notifications.
+- Discovery and ranking include travel time from Google Maps Distance Matrix when `GOOGLE_MAPS_API_KEY` is configured.
+- Static Maps previews are optional on the frontend and use `EXPO_PUBLIC_GOOGLE_MAPS_API_KEY`.

@@ -11,6 +11,7 @@
 
 const { db } = require('../config/firebase');
 const { haversine } = require('../utils/distance');
+const { getTravelTimes } = require('../utils/distanceMatrix');
 
 /**
  * Map a date string (YYYY-MM-DD) to a short day name.
@@ -111,6 +112,18 @@ async function runDiscoveryAgent(input) {
     filterLog.after_distance++;
 
     candidates.push({ ...worker, distance_km });
+  }
+
+  // ── Step 2b: Travel time (optional, uses Google Distance Matrix if available)
+  if (candidates.length > 0) {
+    const travelTimes = await getTravelTimes(
+      { lat, lng },
+      candidates.map((c) => ({ lat: c.lat, lng: c.lng, distance_km: c.distance_km }))
+    );
+
+    candidates.forEach((c, i) => {
+      c.travel_time_min = travelTimes[i];
+    });
   }
 
   // ── Step 3: Sort by distance (closest first) ──────────────────────────

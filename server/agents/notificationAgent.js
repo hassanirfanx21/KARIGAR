@@ -1,5 +1,7 @@
 // ─── Notification Agent (Person B) ──────────────────────────────────────────
 // Simulates sending SMS / WhatsApp notifications.
+const { db } = require('../config/firebase');
+
 // In production this would integrate with Twilio / WhatsApp Business API.
 //
 // Generates messages for:
@@ -70,6 +72,8 @@ const TEMPLATES = {
 async function runNotificationAgent(input) {
   const startTime = Date.now();
   const {
+    user_id,
+    worker_id,
     booking_id,
     confirmation_code,
     user_phone = 'N/A',
@@ -135,6 +139,8 @@ async function runNotificationAgent(input) {
   const notifications = [
     {
       recipient: 'user',
+      user_id: user_id || 'anonymous',
+      worker_id: worker_id || null,
       phone: user_phone,
       channel: 'whatsapp',
       message: userMsg,
@@ -143,6 +149,8 @@ async function runNotificationAgent(input) {
     },
     {
       recipient: 'worker',
+      user_id: user_id || 'anonymous',
+      worker_id: worker_id || null,
       phone: worker_phone,
       channel: 'sms',
       message: workerMsg,
@@ -150,6 +158,18 @@ async function runNotificationAgent(input) {
       status: workerStatus, // SMS integration pending generic provider
     },
   ];
+
+  // Persist notifications for UI
+  try {
+    const batch = db.batch();
+    notifications.forEach((n) => {
+      const ref = db.collection('notifications').doc();
+      batch.set(ref, { ...n, booking_id });
+    });
+    await batch.commit();
+  } catch (err) {
+    console.error('[Notification] Firestore write failed:', err.message);
+  }
 
   return {
     notifications,

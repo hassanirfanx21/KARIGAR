@@ -14,14 +14,15 @@ const { callGeminiText } = require('../utils/gemini');
 
 const SCORING_CONFIG = {
   weights: {
-    distance:       0.20,   // How close the worker is
-    availability:   0.15,   // Is their slot open for the requested time?
-    rating:         0.15,   // Average star rating (out of 5)
+    distance:       0.18,   // How close the worker is
+    travel_time:    0.12,   // Travel time in minutes
+    availability:   0.14,   // Is their slot open for the requested time?
+    rating:         0.14,   // Average star rating (out of 5)
     review_recency: 0.10,   // How recent their latest review is
     reliability:    0.10,   // On-time completion rate
     price_match:    0.10,   // How well their price fits the user's budget
-    skill_match:    0.10,   // How many requested tags they have
-    cancellation:   0.10,   // Inverse of their cancellation rate
+    skill_match:    0.07,   // How many requested tags they have
+    cancellation:   0.05,   // Inverse of their cancellation rate
   },
 
   // Distance scoring thresholds (km → score)
@@ -32,6 +33,16 @@ const SCORING_CONFIG = {
     okay:     10,   // <= 10 km → 50
     far:      15,   // <= 15 km → 30
                     //  > 15 km → 10
+  },
+
+  // Travel time thresholds (minutes → score)
+  travel_time: {
+    perfect:  5,    // <= 5 min  → 100
+    great:    10,   // <= 10 min → 85
+    good:     20,   // <= 20 min → 70
+    okay:     35,   // <= 35 min → 50
+    far:      50,   // <= 50 min → 30
+                   //  > 50 min → 10
   },
 
   // Review recency thresholds (days ago → score)
@@ -66,6 +77,25 @@ function scoreDistance(distanceKm) {
   else                   score = 10;
 
   return { score, raw: `${d.toFixed(1)} km` };
+}
+
+/**
+ * Travel time score — based on minutes from Distance Matrix.
+ * Returns { score: 0-100, raw: "X min" }
+ */
+function scoreTravelTime(travelTimeMin) {
+  const t = parseFloat(travelTimeMin) || 999;
+  const { perfect, great, good, okay, far } = SCORING_CONFIG.travel_time;
+
+  let score;
+  if      (t <= perfect) score = 100;
+  else if (t <= great)   score = Math.round(100 - ((t - perfect) / (great - perfect)) * 15);
+  else if (t <= good)    score = Math.round(85  - ((t - great)   / (good  - great))   * 15);
+  else if (t <= okay)    score = Math.round(70  - ((t - good)    / (okay  - good))    * 20);
+  else if (t <= far)     score = Math.round(50  - ((t - okay)    / (far   - okay))    * 20);
+  else                   score = 10;
+
+  return { score, raw: `${t.toFixed(0)} min` };
 }
 
 /**
@@ -213,6 +243,7 @@ function scoreCandidate(candidate, userRequest) {
   // Compute each factor
   const factors = {
     distance:       scoreDistance(candidate.distance_km),
+    travel_time:    scoreTravelTime(candidate.travel_time_min),
     availability:   scoreAvailability(candidate, userRequest.time_slot),
     rating:         scoreRating(candidate.rating, candidate.total_reviews),
     review_recency: scoreReviewRecency(candidate.last_review_days_ago),
@@ -239,6 +270,7 @@ function scoreCandidate(candidate, userRequest) {
     worker_id:   candidate.worker_id || candidate.id,
     name:        candidate.name,
     distance_km: candidate.distance_km,
+    travel_time_min: candidate.travel_time_min,
     rating:      candidate.rating,
     base_price:  candidate.base_price,
     total_score: Math.round(totalScore * 10) / 10,
@@ -278,6 +310,7 @@ async function generateBatchReasoning(scoredCandidates, userRequest) {
     name: c.name,
     score: c.total_score,
     distance: c.factors.distance.raw,
+    travel_time: c.factors.travel_time.raw,
     rating: c.factors.rating.raw,
     price: c.factors.price_match.raw,
     reliability: c.factors.reliability.raw,
@@ -397,6 +430,7 @@ module.exports = {
   runRankingAgent: rankCandidates, // Alias for orchestrator
   // Exported for unit testing
   scoreDistance,
+  scoreTravelTime,
   scoreAvailability,
   scoreRating,
   scoreReviewRecency,
